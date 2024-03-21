@@ -1,0 +1,26 @@
+# Byte-compiled / optimized files
+__pycache__/
+*.py[cod]
+
+# Virtual environment
+venv/
+env/
+ENV/
+
+# Compiled Python files
+*.pyc
+
+# Logs and databases
+*.log
+*.sqlite3
+db.sqlite3
+
+# Local settings file (if applicable)
+local_settings.py
+
+# IDE-specific files (for PyCharm)
+.idea/
+*.iml
+
+# Environment-specific files
+.env
