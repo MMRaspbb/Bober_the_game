@@ -14,20 +14,36 @@ class GameLoop:
     surface.fill('Light Green')
 
     map = Map(surface_parameters, surface_destination)
+    mouse_right_down = False
 
     def initialize(self):
         while True:
-            for event in pygame.event.get():
-                if event.type == pygame.QUIT:
-                    pygame.quit()
-                    exit()
-                if event.type == pygame.VIDEORESIZE:
-                    self.fix_surface_position()
+            self.__event_handler()
             self.screen.blit(self.surface, self.surface_destination)
             self.map.draw(self.surface)
             pygame.display.update()
             self.clock.tick(30)
-            
+
+
+    def __event_handler(self) -> None:
+        for event in pygame.event.get():
+            self.__on_drag_event(event)
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                exit()
+            if event.type == pygame.VIDEORESIZE:
+                self.fix_surface_position()
+
+    def __on_drag_event(self, event: pygame.event.Event) -> None:
+        if event.type == pygame.MOUSEBUTTONDOWN:
+            if event.button == 3:
+                self.mouse_right_down = True
+        if event.type == pygame.MOUSEMOTION:
+            if self.mouse_right_down:
+                self.map.move_map(event.rel[0], event.rel[1])
+                
+ 
+
     def fix_surface_position(self):
         width, height = pygame.display.get_surface().get_size()
         normalized_width = width / 4
