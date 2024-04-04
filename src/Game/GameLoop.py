@@ -1,4 +1,5 @@
 import pygame
+from .Maps.Map import Map
 from sys import exit
 from pygame.locals import RESIZABLE
 
@@ -7,10 +8,12 @@ class GameLoop:
     pygame.display.set_caption("Bober")
     clock = pygame.time.Clock()
 
-    game_window_parameters = (800, 600)
-    background = pygame.Surface(game_window_parameters)
-    background_destination = (0,0)
-    background.fill('Light Green')
+    surface_parameters = (800, 600)
+    surface = pygame.Surface(surface_parameters)
+    surface_destination = (0,0)
+    surface.fill('Light Green')
+
+    map = Map(surface_parameters, surface_destination)
 
     def initialize(self):
         while True:
@@ -19,20 +22,22 @@ class GameLoop:
                     pygame.quit()
                     exit()
                 if event.type == pygame.VIDEORESIZE:
-                    self.fix_background_position()
-            self.screen.blit(self.background, self.background_destination)
-
+                    self.fix_surface_position()
+            self.screen.blit(self.surface, self.surface_destination)
+            self.map.draw(self.surface)
             pygame.display.update()
-            self.clock.tick(60)
-    def fix_background_position(self):
+            self.clock.tick(30)
+            
+    def fix_surface_position(self):
         width, height = pygame.display.get_surface().get_size()
         normalized_width = width / 4
         normalized_height = height / 3
         if normalized_width > normalized_height:
-            self.game_window_parameters = (normalized_height * 4, height)
-            self.background_destination = (width / 2 - normalized_height * 2, 0)
+            self.surface_parameters = (normalized_height * 4, height)
+            self.surface_destination = (width / 2 - normalized_height * 2, 0)
         else:
-            self.game_window_parameters = (width, normalized_width * 4)
-            self.background_destination = (0, height / 2 - normalized_width * 2)
-        self.background = pygame.Surface(self.game_window_parameters)
-        self.background.fill('Light Green')
+            self.surface_parameters = (width, normalized_width * 3)
+            self.surface_destination = (0, height / 2 - normalized_width * 1.5)
+        self.surface = pygame.Surface(self.surface_parameters)
+        self.surface.fill('Light Green')
+        self.map.update_surface_parameters(self.surface_parameters, self.surface_destination)
