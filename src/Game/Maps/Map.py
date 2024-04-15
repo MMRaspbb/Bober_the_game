@@ -96,7 +96,7 @@ class Map:
         #TODO : rzucić middle na int
         if abs(self.horizontal_move_sum) >= side:
             tiles_to_move = int(self.horizontal_move_sum // side)
-            self.middle[0] += tiles_to_move
+            self.middle[0] -= tiles_to_move
             self.horizontal_move_sum -= tiles_to_move * side
             if self.middle[0] < self.current_map_upper_left[0] + self.tile_num_horizontal // 2:
                 self.middle[0] = int(self.current_map_upper_left[0] + self.tile_num_horizontal // 2)
@@ -104,7 +104,7 @@ class Map:
                 self.middle[0] = int(self.current_map_lower_right[0] - self.tile_num_horizontal // 2)
         elif abs(self.vertical_move_sum) >= side:
             tiles_to_move = int(self.vertical_move_sum // side)
-            self.middle[1] += tiles_to_move
+            self.middle[1] -= tiles_to_move
             self.vertical_move_sum -= tiles_to_move * side
             if self.middle[1] < self.current_map_upper_left[1] + self.tile_num_vertical // 2:
                 self.middle[1] = int(self.current_map_upper_left[1] + self.tile_num_vertical // 2)
