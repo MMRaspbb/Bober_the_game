@@ -24,7 +24,10 @@ class Map:
         self.side = self.width / (self.visible_upper_right[0] - self.visible_lower_left[0])
         for i in range(self.visible_lower_left[1], self.visible_upper_right[1]):
             for j in range(self.visible_lower_left[0], self.visible_upper_right[0]):
-                self.mesh[i][j] = pygame.rect.Rect((j + self.visible_upper_right[0]) * self.side, (i + self.visible_upper_right[1]) * self.side, self.side, self.side)
+                self.mesh[i][j] = pygame.rect.Rect((j + self.visible_upper_right[0]) *
+                                                    self.side, (i + self.visible_upper_right[1]) * self.side,
+                                                    self.side,
+                                                    self.side)
 
     def draw(self, surface: pygame.Surface) -> None:
         surface.fill('Light Green')
@@ -32,6 +35,7 @@ class Map:
             for j in range(self.visible_lower_left[0], self.visible_upper_right[0]):
                 if (i, j) in self.position_color:
                     print(i+ self.visible_upper_right[1], j + self.visible_upper_right[0])
+                    # TODO: fix self.mest index error
                     pygame.draw.rect(surface, self.position_color[(i, j)], self.mesh[i - self.visible_upper_right[0]][j - self.visible_upper_right[1]])
 
     def move_map(self, diff_x: int, diff_y: int) -> None:
