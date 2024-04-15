@@ -16,8 +16,8 @@ class Map:
                       for i in range(self.full_map_width // self.side)]
         # calculate index of the mesh tile that is the middle of the map
         self.middle = [self.full_map_width // (2 * self.side), self.full_map_height // (2 * self.side)]
-        self.current_map_upper_left = [self.middle[0] - 40, self.middle[1] - 30]
-        self.current_map_lower_right = [self.middle[0] + 40, self.middle[1] + 30]
+        self.current_map_upper_left = [self.middle[0] - 120, self.middle[1] - 90]
+        self.current_map_lower_right = [self.middle[0] + 120, self.middle[1] + 90]
         # create map that will make middle of the map black and around it white
         self.colors = {tuple(self.middle): 'Black',
                        (self.middle[0] - 1, self.middle[1]): 'White',
@@ -33,6 +33,8 @@ class Map:
                        (self.middle[0] + 30, self.middle[1] - 23): 'Pink',
                        (self.middle[0] + 30, self.middle[1] + 22): 'Yellow',
                        (0,0): 'Black',
+                       (self.full_map_width // self.side - 1, self.full_map_height // self.side - 1): 'Black',
+                       (0, self.full_map_height // self.side - 1): 'Black',
                        (self.full_map_width // self.side - 1, 0): 'Black'}
         self.horizontal_move_sum = 0
         self.vertical_move_sum = 0
