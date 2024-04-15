@@ -8,7 +8,7 @@ class Map:
         self.width, self.height = surface_parameters
         # create mesh of width 20 pixels and height 20 pixels
         # that will devide full_map
-        self.side = self.width // 20
+        self.side = self.width // 60
         self.mesh = [[pygame.rect.Rect(i * self.side, j * self.side, self.side, self.side) 
                       for j in range(self.full_map_height // self.side)] 
                       for i in range(self.full_map_width // self.side)]
@@ -23,12 +23,16 @@ class Map:
                        (self.middle[0] - 1, self.middle[1] - 1): 'White',
                        (self.middle[0] - 1, self.middle[1] + 1): 'White',
                        (self.middle[0] + 1, self.middle[1] - 1): 'White',
-                       (self.middle[0] + 1, self.middle[1] + 1): 'White'}
+                       (self.middle[0] + 1, self.middle[1] + 1): 'White',
+                       (self.middle[0] - 31, self.middle[1] - 23): 'Red',
+                       (self.middle[0] - 31, self.middle[1] + 22): 'Blue',
+                       (self.middle[0] + 30, self.middle[1] - 23): 'Pink',
+                       (self.middle[0] + 30, self.middle[1] + 22): 'Yellow',}
     
-        #self.__update_mesh()
+        self.__update_mesh()
 
     def __update_mesh(self) -> None:
-        self.side = int(self.width // 20)
+        self.side = int(self.width // 60)
         self.mesh = [[pygame.rect.Rect(i * self.side, j * self.side, self.side, self.side) 
                       for j in range(self.full_map_height // self.side)] 
                       for i in range(self.full_map_width // self.side)]
@@ -43,8 +47,8 @@ class Map:
         mid_j_end = min(self.middle[1] + surface.get_height() // self.side, self.full_map_height // self.side) 
 
         # Calculate the offset to the middle of the map
-        offset_x = self.middle[0] * self.side - 800 // 2
-        offset_y = self.middle[1] * self.side - 600 // 2
+        offset_x = self.middle[0] * self.side - surface.get_width() // 2
+        offset_y = self.middle[1] * self.side - surface.get_height() // 2
 
         # Iterate over the tiles in the middle portion of the map
         for i in range(mid_i_start, mid_i_end):
