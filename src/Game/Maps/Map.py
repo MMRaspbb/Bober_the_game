@@ -69,9 +69,6 @@ class Map:
                     color = self.colors.get((i, j))
                     pygame.draw.rect(surface, color, rect)
 
-        
-
-
     def move_map(self, diff_x: int, diff_y: int) -> None:
         # print(diff_x, diff_y)
         # print(self.middle)
@@ -98,21 +95,21 @@ class Map:
         #             self.middle[1] = self.full_map_height // self.side
         #TODO : rzucić middle na int
         if abs(self.horizontal_move_sum) >= side:
-            tiles_to_move = self.horizontal_move_sum // side
+            tiles_to_move = int(self.horizontal_move_sum // side)
             self.middle[0] += tiles_to_move
             self.horizontal_move_sum -= tiles_to_move * side
             if self.middle[0] < self.current_map_upper_left[0] + self.tile_num_horizontal // 2:
-                self.middle[0] = self.current_map_upper_left[0] + self.tile_num_horizontal // 2
+                self.middle[0] = int(self.current_map_upper_left[0] + self.tile_num_horizontal // 2)
             elif self.middle[0] > self.current_map_lower_right[0] - self.tile_num_horizontal // 2:
-                self.middle[0] = self.current_map_lower_right[0] - self.tile_num_horizontal // 2
+                self.middle[0] = int(self.current_map_lower_right[0] - self.tile_num_horizontal // 2)
         elif abs(self.vertical_move_sum) >= side:
-            tiles_to_move = self.vertical_move_sum // side
+            tiles_to_move = int(self.vertical_move_sum // side)
             self.middle[1] += tiles_to_move
             self.vertical_move_sum -= tiles_to_move * side
             if self.middle[1] < self.current_map_upper_left[1] + self.tile_num_vertical // 2:
-                self.middle[1] = self.current_map_upper_left[1] + self.tile_num_vertical // 2
+                self.middle[1] = int(self.current_map_upper_left[1] + self.tile_num_vertical // 2)
             elif self.middle[1] > self.current_map_lower_right[1] - self.tile_num_vertical // 2:
-                self.middle[1] = self.current_map_lower_right[1] - self.tile_num_vertical // 2
+                self.middle[1] = int(self.current_map_lower_right[1] - self.tile_num_vertical // 2)
     def update_surface_parameters(self, surface_parameters: tuple, surface_destination: tuple) -> None:
         self.width, self.height = surface_parameters
         self.surface_destination = surface_destination
