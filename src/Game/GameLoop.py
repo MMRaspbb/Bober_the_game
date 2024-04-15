@@ -17,12 +17,16 @@ class GameLoop:
     mouse_right_down = False
 
     def initialize(self):
+        frames_passed = 0
         while True:
             self.__event_handler()
             self.screen.blit(self.surface, self.surface_destination)
             self.map.draw(self.surface)
+            if frames_passed % 150 == 0:
+                self.map.expand_borders()
             pygame.display.update()
             self.clock.tick(30)
+            frames_passed += 1
 
 
     def __event_handler(self) -> None:
