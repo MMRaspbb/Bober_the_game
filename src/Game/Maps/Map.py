@@ -2,20 +2,24 @@ import pygame
 
 class Map:
     def __init__(self, surface_parameters: tuple[int, int], surface_destination: tuple[int, int]) -> None:
-        self.full_map_width = 4 * 1000
-        self.full_map_height = 3 * 1000
+        self.full_map_width = 4 * 500
+        self.full_map_height = 3 * 500
         # visible map width and height
         self.width, self.height = surface_parameters
         # create mesh of width 20 pixels and height 20 pixels
         # that will devide full_map
-        self.side = self.width // 60
+        self.tile_num_horizontal = 60
+        self.tile_num_vertical = self.tile_num_horizontal *(3/4)
+        self.side = self.width // self.tile_num_horizontal
         self.mesh = [[pygame.rect.Rect(i * self.side, j * self.side, self.side, self.side) 
                       for j in range(self.full_map_height // self.side)] 
                       for i in range(self.full_map_width // self.side)]
         # calculate index of the mesh tile that is the middle of the map
-        self.middle = (self.full_map_width // (2 * self.side), self.full_map_height // (2 * self.side))
+        self.middle = [self.full_map_width // (2 * self.side), self.full_map_height // (2 * self.side)]
+        self.current_map_upper_left = [self.middle[0] - 40, self.middle[1] - 30]
+        self.current_map_lower_right = [self.middle[0] + 40, self.middle[1] + 30]
         # create map that will make middle of the map black and around it white
-        self.colors = {self.middle: 'Black',
+        self.colors = {tuple(self.middle): 'Black',
                        (self.middle[0] - 1, self.middle[1]): 'White',
                        (self.middle[0] + 1, self.middle[1]): 'White',
                        (self.middle[0], self.middle[1] - 1): 'White',
@@ -27,12 +31,15 @@ class Map:
                        (self.middle[0] - 31, self.middle[1] - 23): 'Red',
                        (self.middle[0] - 31, self.middle[1] + 22): 'Blue',
                        (self.middle[0] + 30, self.middle[1] - 23): 'Pink',
-                       (self.middle[0] + 30, self.middle[1] + 22): 'Yellow',}
-    
+                       (self.middle[0] + 30, self.middle[1] + 22): 'Yellow',
+                       (0,0): 'Black',
+                       (self.full_map_width // self.side - 1, 0): 'Black'}
+        self.horizontal_move_sum = 0
+        self.vertical_move_sum = 0
         self.__update_mesh()
 
     def __update_mesh(self) -> None:
-        self.side = int(self.width // 60)
+        self.side = int(self.width // self.tile_num_horizontal)
         self.mesh = [[pygame.rect.Rect(i * self.side, j * self.side, self.side, self.side) 
                       for j in range(self.full_map_height // self.side)] 
                       for i in range(self.full_map_width // self.side)]
@@ -66,32 +73,46 @@ class Map:
 
 
     def move_map(self, diff_x: int, diff_y: int) -> None:
+        # print(diff_x, diff_y)
+        # print(self.middle)
         self.horizontal_move_sum += diff_x
         self.vertical_move_sum += diff_y
         side = int(self.side)
-        tiles_to_move = 0
-        if self.horizontal_move_sum >= side:
+        # if abs(self.horizontal_move_sum) >= side:
+        #     tiles_to_move = self.horizontal_move_sum // side
+        #     if tiles_to_move + self.middle[0] >= 0 and self.middle[0] <= self.full_map_width // side:
+        #         self.horizontal_move_sum -= tiles_to_move * side
+        #         self.middle[0] -= tiles_to_move
+        #         if self.middle[0] < 0:
+        #             self.middle[0] = 0
+        #         elif self.middle[0] >= self.full_map_height // side:
+        #             self.middle[0] = self.full_map_height // side
+        # if abs(self.vertical_move_sum) >= side:
+        #     tiles_to_move = self.vertical_move_sum // side
+        #     if tiles_to_move + self.middle[1] >= 0 and self.middle[1] <= self.full_map_height // self.side:
+        #         self.vertical_move_sum -= tiles_to_move * side
+        #         self.middle[1] -= tiles_to_move
+        #         if self.middle[1] < 0:
+        #             self.middle[1] = 0
+        #         elif self.middle[1] >= self.full_map_height // self.side:
+        #             self.middle[1] = self.full_map_height // self.side
+        #TODO : rzucić middle na int
+        if abs(self.horizontal_move_sum) >= side:
             tiles_to_move = self.horizontal_move_sum // side
+            self.middle[0] += tiles_to_move
             self.horizontal_move_sum -= tiles_to_move * side
-            self.visible_lower_left[0] += tiles_to_move
-            self.visible_upper_right[0] += tiles_to_move
-        elif self.horizontal_move_sum <= -side:
-            tiles_to_move = -self.horizontal_move_sum // side
-            self.horizontal_move_sum += tiles_to_move * side
-            self.visible_lower_left[0] -= tiles_to_move
-            self.visible_upper_right[0] -= tiles_to_move
-        
-        if self.vertical_move_sum >= side:
+            if self.middle[0] < self.current_map_upper_left[0] + self.tile_num_horizontal // 2:
+                self.middle[0] = self.current_map_upper_left[0] + self.tile_num_horizontal // 2
+            elif self.middle[0] > self.current_map_lower_right[0] - self.tile_num_horizontal // 2:
+                self.middle[0] = self.current_map_lower_right[0] - self.tile_num_horizontal // 2
+        elif abs(self.vertical_move_sum) >= side:
             tiles_to_move = self.vertical_move_sum // side
+            self.middle[1] += tiles_to_move
             self.vertical_move_sum -= tiles_to_move * side
-            self.visible_lower_left[1] += tiles_to_move
-            self.visible_upper_right[1] += tiles_to_move
-        elif self.vertical_move_sum <= -side:
-            tiles_to_move = -self.vertical_move_sum // side
-            self.vertical_move_sum += tiles_to_move * side
-            self.visible_lower_left[1] -= tiles_to_move
-            self.visible_upper_right[1] -= tiles_to_move
-
+            if self.middle[1] < self.current_map_upper_left[1] + self.tile_num_vertical // 2:
+                self.middle[1] = self.current_map_upper_left[1] + self.tile_num_vertical // 2
+            elif self.middle[1] > self.current_map_lower_right[1] - self.tile_num_vertical // 2:
+                self.middle[1] = self.current_map_lower_right[1] - self.tile_num_vertical // 2
     def update_surface_parameters(self, surface_parameters: tuple, surface_destination: tuple) -> None:
         self.width, self.height = surface_parameters
         self.surface_destination = surface_destination

@@ -41,6 +41,9 @@ class GameLoop:
         if event.type == pygame.MOUSEMOTION:
             if self.mouse_right_down:
                 self.map.move_map(event.rel[0], event.rel[1])
+        if event.type == pygame.MOUSEBUTTONUP:
+            if event.button == 3:
+                self.mouse_right_down = False
                 
  
 
