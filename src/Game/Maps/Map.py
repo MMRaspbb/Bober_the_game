@@ -1,4 +1,5 @@
 import pygame
+from ..MapElements.River import River
 
 class Map:
     def __init__(self, surface_parameters: tuple[int, int], surface_destination: tuple[int, int]) -> None:
@@ -40,6 +41,11 @@ class Map:
                        (self.current_map_upper_left[0], self.current_map_upper_left[1]) : "Purple",}
         self.horizontal_move_sum = 0
         self.vertical_move_sum = 0
+        self.river1 = River((0, 0), (self.full_map_width, self.full_map_height))
+        self.river1.draw(self.colors)
+        self.river2 = River((0, self.full_map_height), (self.full_map_width, 0))
+        self.river2.draw(self.colors)
+
         self.__update_mesh()
 
     def __update_mesh(self) -> None:
