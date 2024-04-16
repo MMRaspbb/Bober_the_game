@@ -1,10 +1,5 @@
-from ..Utils.QuadraticFormula import QuadraticFormula
-import matplotlib.pyplot as plt
 import random
-import pygame
 from math import sqrt
-from time import sleep
-
 
 class River:
     def __init__(self, beginning: tuple[int, int], end: tuple[int, int]) -> None:

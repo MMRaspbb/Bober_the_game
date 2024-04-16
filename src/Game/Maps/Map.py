@@ -41,10 +41,10 @@ class Map:
                        (self.current_map_upper_left[0], self.current_map_upper_left[1]) : "Purple",}
         self.horizontal_move_sum = 0
         self.vertical_move_sum = 0
-        self.river1 = River((0, 0), (self.full_map_width, self.full_map_height))
-        self.river1.draw(self.colors)
-        self.river2 = River((0, self.full_map_height), (self.full_map_width, 0))
-        self.river2.draw(self.colors)
+        # self.river1 = River((0, 0), (self.full_map_width, self.full_map_height))
+        # self.river1.draw(self.colors)
+        # self.river2 = River((0, self.full_map_height), (self.full_map_width, 0))
+        # self.river2.draw(self.colors)
 
         self.__update_mesh()
 
@@ -82,29 +82,9 @@ class Map:
                     pygame.draw.rect(surface, color, rect)
 
     def move_map(self, diff_x: int, diff_y: int) -> None:
-        # print(diff_x, diff_y)
-        # print(self.middle)
         self.horizontal_move_sum += diff_x
         self.vertical_move_sum += diff_y
         side = int(self.side)
-        # if abs(self.horizontal_move_sum) >= side:
-        #     tiles_to_move = self.horizontal_move_sum // side
-        #     if tiles_to_move + self.middle[0] >= 0 and self.middle[0] <= self.full_map_width // side:
-        #         self.horizontal_move_sum -= tiles_to_move * side
-        #         self.middle[0] -= tiles_to_move
-        #         if self.middle[0] < 0:
-        #             self.middle[0] = 0
-        #         elif self.middle[0] >= self.full_map_height // side:
-        #             self.middle[0] = self.full_map_height // side
-        # if abs(self.vertical_move_sum) >= side:
-        #     tiles_to_move = self.vertical_move_sum // side
-        #     if tiles_to_move + self.middle[1] >= 0 and self.middle[1] <= self.full_map_height:
-        #         self.vertical_move_sum -= tiles_to_move * side
-        #         self.middle[1] -= tiles_to_move
-        #         if self.middle[1] < 0:
-        #             self.middle[1] = 0
-        #         elif self.middle[1] >= self.full_map_height:
-        #             self.middle[1] = self.full_map_height
         if abs(self.horizontal_move_sum) >= side:
             tiles_to_move = int(self.horizontal_move_sum // side)
             self.middle[0] -= tiles_to_move
@@ -114,7 +94,7 @@ class Map:
                 self.middle[0] = int(self.current_map_upper_left[0] + half_horizontal)
             elif self.middle[0] > self.current_map_lower_right[0] - half_horizontal:
                 self.middle[0] = int(self.current_map_lower_right[0] - half_horizontal)
-        elif abs(self.vertical_move_sum) >= side:
+        if abs(self.vertical_move_sum) >= side:
             tiles_to_move = int(self.vertical_move_sum // side)
             self.middle[1] -= tiles_to_move
             self.vertical_move_sum -= tiles_to_move * side
