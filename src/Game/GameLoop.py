@@ -27,10 +27,17 @@ class GameLoop:
         while True:
             self.__event_handler()
             self.screen.blit(self.surface, self.surface_destination)
+
+            # maybe temporary update:
+            self.map.update_rivers()
+
             self.map.draw(self.surface)
             self.map.move_bobrs()
             if frames_passed % 150 == 0:
                 self.map.expand_borders()
+
+
+
             pygame.display.update()
             self.clock.tick(30)
             frames_passed += 1

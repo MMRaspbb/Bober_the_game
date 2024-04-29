@@ -1,44 +1,115 @@
 import random
 from math import sqrt
+from Game.Utils.RiverNodesCreator import RiverNodesCreator
+
 
 class River:
-    def __init__(self, beginning: tuple[int, int], end: tuple[int, int]) -> None:
-        self.beginning = beginning
-        self.end = end
+    def __init__(self, beginning: list[int, int], end: list[int, int], strength: int) -> None:
+        self.__beginning = beginning
+        self.__end = end
+        self.__backward_flow = False
+        if end[0] < beginning[0]:
+            self.__backward_flow = True
+        self.__interpolation_nodes_distance = 10
+        self.__river_segment_length = 1
         self.__delineate_river()
+        self.river_state = 0
+        self.__river_state_limiter = len(self.river_points) - 1
+        self.__strength = strength
 
-    def __delineate_river(self):
-        x1, y1 = self.beginning[0], self.beginning[1]
-        x2, y2 = self.end[0], self.end[1]
-        a = (y1 - y2) / (x1 - x2)
-        b = y1 - a * x1
-        horizontal_current = -self.end[0] if x1 > x2 else self.end[0]
-        current_position = [x1, y1]
-        nodes = [(x1, y1)]
-        step = (x2 - x1) / sqrt((x2 - x1) ** 2 + (y2 - y1) ** 2)
-        self.amplitude = sqrt((x2 - x1) ** 2 + (y2 - y1) ** 2) / (0.5 * (x2 - x1))
-        while (current_position[0] + step < horizontal_current):
-            # follow the line passing through the beginning and the end
-            # and add a random value to the y coordinate
-            # to simulate the river's flow
-            current_position[0] += step
-            current_position[1] = a * current_position[0] + b
-            random_value = random.uniform(-self.amplitude, self.amplitude)
-            current_position[1] += random_value
-            nodes.append((current_position[0], current_position[1]))
+    def __delineate_river(self) -> None:
+        riverNodeCreator = RiverNodesCreator()
+        nodes = riverNodeCreator.node_creator(self.__beginning, self.__end, 10, self.__interpolation_nodes_distance,
+                                              self.__river_segment_length)
+        self.river_points = []
+        for i in range(1, len(nodes)):
+            x1, y1 = nodes[i - 1]
+            x2, y2 = nodes[i]
+            versor = ((x2 - x1) / self.__river_segment_length, (y2 - y1) / self.__river_segment_length)
+            for j in range(self.__river_segment_length):
+                self.river_points.append((x1 + versor[0] * j, y1 + versor[1] * j))
+    def push_river_state(self) -> bool: #returns if the river was pushed or just stayed in place
+        print(self.river_state)
+        if (self.river_state < self.__river_state_limiter):
+            self.river_state += 1
+            return True
+        return False
 
-        nodes.append((self.end[0], self.end[1]))
-        self.nodes = nodes
+    def block_river(self) -> None:
+        self.__river_state_limiter = self.river_state
+    def set_river_limit(self, limit: int) -> None:
+        self.__river_state_limiter = limit
+        if(self.river_state > self.__river_state_limiter):
+            self.river_state = self.__river_state_limiter
 
-    def draw(self, colors : dict) -> None:
-        for i in range(1, len(self.nodes)):
-            x1, y1 = self.nodes[i - 1]
-            x2, y2 = self.nodes[i]
-            vector = (x2 - x1, y2 - y1)
-            values_to_check = 50
-            for j in range(values_to_check):
-                x = x1 + j * vector[0] / values_to_check
-                y = y1 + j * vector[1] / values_to_check
-                colors[(int(x), int(y))] = 'blue'
-        
-        
+    def get_pushed_point(self) -> tuple[int, int]:
+        if self.__backward_flow:
+            return self.river_points[-1 - self.river_state]
+        else:
+            return self.river_points[self.river_state]
+
+    def get_default_end(self) -> tuple[int, int]:
+        return self.river_points[-1]
+    @property
+    def get_strength(self) -> int:
+        return self.__strength
+    def contains_or_touches(self, point: tuple[int, int]) -> bool:
+        # temporary solution, can be solved quicker with binary search
+
+        river_points = self.river_points
+        if self.__backward_flow:
+            river_range = range(len(river_points) - 1, len(river_points) - 1 - self.river_state, -1)
+        else:
+            river_range = range(self.river_state)
+        versors = [(0, 0), (1, 0), (-1, 0), (0, 1), (0, -1)]
+        for versor in versors:
+            point_to_check = (point[0] + versor[0], point[1] + versor[1])
+            for i in river_range:
+                if river_points[i] == point_to_check:
+                    return i
+        return -1
+   
+    # def draw(self, colors: dict) -> None:
+    #     river_points = self.river_points
+    #     river_range = 0
+    #     if self.__backward_flow:
+    #         river_range = range(len(river_points) - 1, len(river_points) - 1 - self.river_state, -1)
+    #     else:
+    #         river_range = range(self.river_state)
+    #     for i in river_range:
+    #         colors[river_points[i]] = 'blue'
+    #         colors[(river_points[i][0] + 1, river_points[i][1])] = 'blue'
+    #         colors[(river_points[i][0] - 1, river_points[i][1])] = 'blue'
+    #         colors[(river_points[i][0], river_points[i][1] + 1)] = 'blue'
+    #         colors[(river_points[i][0], river_points[i][1] - 1)] = 'blue'
+    #         if i + 1 < len(river_points):
+    #             versor = (river_points[i + 1][0] - river_points[i][0], river_points[i + 1][1] - river_points[i][1])
+    #             if (versor[0] > 0):
+    #                 if (versor[1] > 0):
+    #                     colors[(river_points[i][0], river_points[i][1] + 2)] = 'blue'
+    #                 elif (versor[1] < 0):
+    #                     colors[(river_points[i][0], river_points[i][1] - 2)] = 'blue'
+
+    def get_representation(self) -> list:
+        result = []
+        river_points = self.river_points
+        river_range = 0
+        if self.__backward_flow:
+            river_range = range(len(river_points) - 1, len(river_points) - 1 - self.river_state, -1)
+        else:
+            river_range = range(self.river_state)
+        for i in river_range:
+            result.append([int(river_points[i][0]), int(river_points[i][1]), 'blue'])
+            result.append([int(river_points[i][0] + 1), int(river_points[i][1]), 'blue'])
+            result.append([int(river_points[i][0] - 1), int(river_points[i][1]), 'blue'])
+            result.append([int(river_points[i][0]), int(river_points[i][1] + 1), 'blue'])
+            result.append([int(river_points[i][0]), int(river_points[i][1] - 1), 'blue'])
+            if i + 1 < len(river_points):
+                versor = (river_points[i + 1][0] - river_points[i][0], river_points[i + 1][1] - river_points[i][1])
+                if (versor[0] > 0):
+                    if (versor[1] > 0):
+                        result.append([int(river_points[i][0]), int(river_points[i][1] + 2), 'blue'])
+                    elif (versor[1] < 0):
+                        result.append([int(river_points[i][0]), int(river_points[i][1] - 2), 'blue'])
+
+        return result
