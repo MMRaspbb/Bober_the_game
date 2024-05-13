@@ -25,10 +25,6 @@ class Map:
         self.colors = {}
         self.horizontal_move_sum = 0
         self.vertical_move_sum = 0
-        # self.river1 = River((0, 0), (self.full_map_width, self.full_map_height))
-        # self.river1.draw(self.colors)
-        # self.river2 = River((0, self.full_map_height), (self.full_map_width, 0))
-        # self.river2.draw(self.colors)
 
         # BOBRS
         self.bobrs = [RegularBobr("Bobr1", self.middle[0] - 15, self.middle[1] - 10),
@@ -47,10 +43,15 @@ class Map:
 
 
         self.rivers = []
-        river1 = River([0, 0], [self.full_map_width, self.full_map_height], 1)
+        river1 = River([0, 0], [self.full_map_width, self.full_map_height])
         self.rivers.append(river1)
-        river2 = River([0, self.full_map_height], [self.full_map_width, 0], 1)
+        river2 = River([0, self.full_map_height], [self.full_map_width, 0])
         self.rivers.append(river2)
+        # river3 = River([self.full_map_width, 0], [0, self.full_map_height])
+        # self.rivers.append(river3)
+        river1.river_state = 400
+        river2.river_state = 400
+        # river3.river_state = 400
         self.__update_mesh()
 
     def __update_mesh(self) -> None:
@@ -72,13 +73,6 @@ class Map:
         # Calculate the offset to the middle of the map
         offset_x = self.middle[0] * self.side - surface.get_width() // 2
         offset_y = self.middle[1] * self.side - surface.get_height() // 2
-
-        # Clearing the colors dictionary
-        # self.colors = {}
-        # # Drawing the objects on the map
-        # for river in self.rivers:
-        #     river.draw(self.colors)
-
         elements_to_draw = []
         for river in self.rivers:
             elements_to_draw += river.get_representation()
@@ -188,29 +182,27 @@ class Map:
                     point_position = self.rivers[j].contains_or_touches(pushed_point)
                     if point_position >= 0:
                         self.rivers[i].block_river()
-                        self.rivers[j].set_river_limit(point_position)
-                        beginning = [pushed_point[0], pushed_point[1]]
-                        end = self.__calculate_new_river_end(self.rivers[i], self.rivers[j], pushed_point)
-                        rivers_to_append.append(River(beginning,end, self.rivers[i].get_strength + self.rivers[j].get_strength))
-        self.rivers += rivers_to_append
-    def __calculate_new_river_end(self, river1: River, river2: River, colision_point: tuple[int, int]) -> tuple[int, int]:
-        end1 = river1.get_default_end()
-        end2 = river2.get_default_end()
-        versor1 = (end1[0] - colision_point[0], end1[1] - colision_point[1])
-        versor2 = (end2[0] - colision_point[0], end2[1] - colision_point[1])
-        bigger_parameter = versor1[0]
-        if versor1[0] < versor1[1]:
-            bigger_parameter = versor1[1]
-        versor1 = (versor1[0] * river1.get_strength / bigger_parameter, versor1[1] * river1.get_strength / bigger_parameter)
-        bigger_parameter = versor2[0]
-        if versor2[0] < versor2[1]:
-            bigger_parameter = versor2[1]
-        versor2 = (versor2[0] * river2.get_strength / bigger_parameter, versor2[1] * river2.get_strength / bigger_parameter)
-        combined_vector = (versor1[0] + versor2[0], versor1[1] + versor2[1])
-        current_position = [colision_point[0], colision_point[1]]
-        while(current_position[0] >= 0 and current_position[0] <= self.full_map_width and current_position[1] >= 0 and current_position[1] <= self.full_map_height):
-            current_position[0] += combined_vector[0]
-            current_position[1] += combined_vector[1]
-        current_position[0] = int(current_position[0])
-        current_position[1] = int(current_position[1])
-        return current_position
+                        dominant_river_points = self.rivers[j].get_river_points()
+                        self.rivers[i].modify_river_end_points(dominant_river_points, point_position)
+    # def __calculate_new_river_end(self, river1: River, river2: River, colision_point: tuple[int, int]) -> tuple[int, int]:
+    #     #not used could be usefull for bober dams
+    #     end1 = river1.get_default_end()
+    #     end2 = river2.get_default_end()
+    #     versor1 = (end1[0] - colision_point[0], end1[1] - colision_point[1])
+    #     versor2 = (end2[0] - colision_point[0], end2[1] - colision_point[1])
+    #     bigger_parameter = versor1[0]
+    #     if versor1[0] < versor1[1]:
+    #         bigger_parameter = versor1[1]
+    #     versor1 = (versor1[0] * river1.get_strength / bigger_parameter, versor1[1] * river1.get_strength / bigger_parameter)
+    #     bigger_parameter = versor2[0]
+    #     if versor2[0] < versor2[1]:
+    #         bigger_parameter = versor2[1]
+    #     versor2 = (versor2[0] * river2.get_strength / bigger_parameter, versor2[1] * river2.get_strength / bigger_parameter)
+    #     combined_vector = (versor1[0] + versor2[0], versor1[1] + versor2[1])
+    #     current_position = [colision_point[0], colision_point[1]]
+    #     while(current_position[0] >= 0 and current_position[0] <= self.full_map_width and current_position[1] >= 0 and current_position[1] <= self.full_map_height):
+    #         current_position[0] += combined_vector[0]
+    #         current_position[1] += combined_vector[1]
+    #     current_position[0] = int(current_position[0])
+    #     current_position[1] = int(current_position[1])
+    #     return current_position
