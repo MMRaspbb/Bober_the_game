@@ -6,6 +6,7 @@ from ..MapElements.Bobrs.RegularBobr import RegularBobr
 class Map:
     def __init__(self, surface_parameters: tuple[int, int], surface_destination: tuple[int, int]) -> None:
         # visible map width and height
+        self.surface_destination = surface_destination
         self.width, self.height = surface_parameters
         # create mesh of width 20 pixels and height 20 pixels
         # that will devide full_map
@@ -42,15 +43,15 @@ class Map:
         self.rivers = []
 
 
-        self.rivers = []
-        river1 = River([0, 0], [self.full_map_width, self.full_map_height])
-        self.rivers.append(river1)
-        river2 = River([0, self.full_map_height], [self.full_map_width, 0])
-        self.rivers.append(river2)
-        # river3 = River([self.full_map_width, 0], [0, self.full_map_height])
-        # self.rivers.append(river3)
-        river1.river_state = 400
-        river2.river_state = 400
+        # self.rivers = []
+        # river1 = River([0, 0], [self.full_map_width, self.full_map_height])
+        # self.rivers.append(river1)
+        # river2 = River([0, self.full_map_height], [self.full_map_width, 0])
+        # self.rivers.append(river2)
+        # # river3 = River([self.full_map_width, 0], [0, self.full_map_height])
+        # # self.rivers.append(river3)
+        # river1.river_state = 400
+        # river2.river_state = 400
         # river3.river_state = 400
         self.__update_mesh()
 
@@ -88,6 +89,7 @@ class Map:
                 # Adjust the position of the rectangle by the offset to the middle of the map
                 rect.move_ip(-offset_x, -offset_y)
                 pygame.draw.rect(surface, color, rect)
+        
 
     def move_map(self, diff_x: int, diff_y: int) -> None:
         self.horizontal_move_sum += diff_x
@@ -122,8 +124,8 @@ class Map:
 
     def convert_pixel_to_tile(self, x: int, y: int) -> tuple[int, int]:
         # calculate tile indices from pixel coordinates in regards to the middle of the map
-        i = int((x + self.middle[0] * self.side) // self.side - self.tile_num_horizontal // 2 - 1)
-        j = int((y + self.middle[1] * self.side) // self.side - self.tile_num_vertical // 2 - 1)
+        i = int((x + self.middle[0] * self.side) // self.side - self.tile_num_horizontal // 2)
+        j = int((y + self.middle[1] * self.side) // self.side - self.tile_num_vertical // 2)
         return (i, j)
     
     def get_area_selection(self, start: tuple[int, int], end: tuple[int, int]) -> list[object]:
@@ -144,7 +146,10 @@ class Map:
         return selected_elements
 
     def get_selection(self, x: int, y: int) -> object:
+        x -= self.surface_destination[0]
+        y -= self.surface_destination[1]
         (i, j) = self.convert_pixel_to_tile(x, y)
+        print(i, j)
         for element in self.__map_elements():
             if element.position == (i, j):
                 element.is_selected = True
@@ -172,7 +177,6 @@ class Map:
             self.bobrs.append(RegularBobr("tmp", self.current_map_lower_right[0], self.current_map_lower_right[1]))
 
     def update_rivers(self):
-        rivers_to_append = []
         for i in range(len(self.rivers)):
             if self.rivers[i].push_river_state():
                 pushed_point = self.rivers[i].get_pushed_point()

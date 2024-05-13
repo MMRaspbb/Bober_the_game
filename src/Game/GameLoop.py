@@ -112,9 +112,11 @@ class GameLoop:
         normalized_width = width / 4
         normalized_height = height / 3
         if normalized_width > normalized_height:
+            # po lewej i po prawej czarne paski
             self.surface_parameters = (normalized_height * 4, height)
             self.surface_destination = (width / 2 - normalized_height * 2, 0)
         else:
+            # u góry i na dole czarne paski
             self.surface_parameters = (width, normalized_width * 3)
             self.surface_destination = (0, height / 2 - normalized_width * 1.5)
         self.surface = pygame.Surface(self.surface_parameters)
