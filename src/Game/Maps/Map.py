@@ -2,8 +2,10 @@ import pygame
 from ..MapElements.River import River
 from ..MapElements.Bobrs.RegularBobr import RegularBobr
 from ..MapElements.Bobrs.GathererBobr import GathererBobr
+from ..MapElements.Bobrs.BuilderBobr import BuilderBobr
 from ..MapElements.resources.ForestResource import ForestResource
 from ..MapElements.resources.StoneResource import StoneResource
+from ..MapElements.buildings.Dam import Dam
 
 class Map:
     def __init__(self, surface_parameters: tuple[int, int], surface_destination: tuple[int, int]) -> None:
@@ -30,14 +32,27 @@ class Map:
         self.horizontal_move_sum = 0
         self.vertical_move_sum = 0
 
+        self.selected_builder = None
+
         # BOBRS
         self.bobrs = [GathererBobr("G1", self.middle[0] - 15, self.middle[1] - 10),
                       GathererBobr("G2", self.middle[0] + 15, self.middle[1] - 10),
                       GathererBobr("G3", self.middle[0] - 15, self.middle[1] + 10),
-                      RegularBobr("G4", self.middle[0] + 15, self.middle[1] + 10)]
+                      BuilderBobr("G4", self.middle[0] + 15, self.middle[1] + 10)]
         
         # DAMS
         self.dams = []
+        self.dams.append(Dam(self.middle[0] - 10, self.middle[1] - 10))
+        dam2 = Dam(self.middle[0] + 10, self.middle[1] - 10)
+        dam2.rotate_counter_clockwise()
+        self.dams.append(dam2)
+
+        dam3 = Dam(self.middle[0] - 10, self.middle[1] + 10)
+        dam3.rotate_clockwise()
+        self.dams.append(dam3)
+
+        self.skeleton_dam = None
+
 
         # BUILDINGS
         self.buildings = []
@@ -52,14 +67,14 @@ class Map:
         self.resources.append(StoneResource(self.middle[0] + 10, self.middle[1] + 10))
 
         self.rivers = []
-        # river1 = River([0, 0], [self.full_map_width, self.full_map_height])
-        # self.rivers.append(river1)
-        # river2 = River([0, self.full_map_height], [self.full_map_width, 0])
-        # self.rivers.append(river2)
-        # # river3 = River([self.full_map_width, 0], [0, self.full_map_height])
-        # # self.rivers.append(river3)
-        # river1.river_state = 400
-        # river2.river_state = 400
+        river1 = River([0, 0], [self.full_map_width, self.full_map_height])
+        self.rivers.append(river1)
+        river2 = River([0, self.full_map_height], [self.full_map_width, 0])
+        self.rivers.append(river2)
+        # river3 = River([self.full_map_width, 0], [0, self.full_map_height])
+        # self.rivers.append(river3)
+        river1.river_state = 400
+        river2.river_state = 400
 
         self.curr_resources = {
             "wood": 0,
@@ -91,13 +106,33 @@ class Map:
         for river in self.rivers:
             elements_to_draw += river.get_representation()
 
+        for dam in self.dams:
+            elements_to_draw += dam.get_representation()
+
         for resource in self.resources:
             elements_to_draw += resource.get_representation()
 
         for element in self.__map_elements():
             elements_to_draw += [element.get_representation()]
 
+        if self.selected_builder is not None:
+            x, y = pygame.mouse.get_pos()
+            x -= self.surface_destination[0]
+            y -= self.surface_destination[1]
+            i, j = self.convert_pixel_to_tile(x, y)
+            if self.__calculate_distance_in_tiles((i, j), self.selected_builder.position) <= 5:
+                for river in self.rivers:
+                    if river.contains_or_touches((i, j)) >= 0:
+                        if self.skeleton_dam is None or self.skeleton_dam.position != (i, j):
+                            self.skeleton_dam = Dam(i, j)
+                            print("NEW DAM")
+                            break
+                    else:
+                        self.skeleton_dam = None
 
+            
+        if self.skeleton_dam is not None:
+            elements_to_draw += self.skeleton_dam.get_representation()
 
         for (x, y, color) in elements_to_draw:
             if (x >= mid_i_start and x < mid_i_end and y >= mid_j_start and y < mid_j_end):
@@ -107,11 +142,18 @@ class Map:
                 rect.move_ip(-offset_x, -offset_y)
                 pygame.draw.rect(surface, color, rect)
 
+
         wood_text = pygame.font.SysFont('Arial', 20).render(f"Wood: {self.curr_resources['wood']}", True, (0, 0, 0))
         stone_text = pygame.font.SysFont('Arial', 20).render(f"Stone: {self.curr_resources['stone']}", True, (0, 0, 0))
         surface.blit(wood_text, (10, 10))
         surface.blit(stone_text, (10, 30))
+
+    def rotate_skeleton_dam(self) -> int:
+        if self.skeleton_dam is not None:
+            self.skeleton_dam.rotate_clockwise()
         
+    def __calculate_distance_in_tiles(self, point1: list[int], point2: list[int]) -> int:
+        return int(((point1[0] - point2[0]) ** 2 + (point1[1] - point2[1]) ** 2) ** 0.5)
 
     def move_map(self, diff_x: int, diff_y: int) -> None:
         self.horizontal_move_sum += diff_x
@@ -168,11 +210,16 @@ class Map:
                     print("SELECTED BOBR IN RESOURCE")
                     resource.bobr.is_selected = True
                     return resource.bobr
-            
+        
+
+
         for element in self.__map_elements():
             if element.position == (i, j):
                 element.is_selected = True
+                if isinstance(element, BuilderBobr):
+                    self.selected_builder = element
                 return element
+            
 
             
 

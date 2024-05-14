@@ -1,5 +1,3 @@
-
-
 class Selectable():
     def __init__(self) -> None:
         self.__is_selected = False

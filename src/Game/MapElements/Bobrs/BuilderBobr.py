@@ -1,6 +1,6 @@
 from .AbstractBobr import AbstractBobr
 
-class GathererBobr(AbstractBobr):
+class BuilderBobr(AbstractBobr):
     '''
     Regular Bobr class
     '''

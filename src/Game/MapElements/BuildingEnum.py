@@ -1,6 +1,6 @@
 from enum import Enum
 
 class BuildingEnum(Enum):
-    pass
+    DAM = 0
 
 # TODO: Implement BuildingEnum

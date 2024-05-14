@@ -47,6 +47,7 @@ class GameLoop:
         for event in pygame.event.get():
             self.__on_drag_event(event)
             self.__on_select_event(event)
+            self.__on_scroll_event(event)
             if event.type == pygame.QUIT:
                 pygame.quit()
                 exit()
@@ -81,6 +82,10 @@ class GameLoop:
                     self.selected_element.is_selected = False
                     self.mouse_left_clicked = False
                     self.selected_element = None
+
+    def __on_scroll_event(self, event: pygame.event.Event) -> None:
+        if event.type == pygame.MOUSEWHEEL:
+            self.map.rotate_skeleton_dam()
         
  
 
