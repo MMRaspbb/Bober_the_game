@@ -44,17 +44,8 @@ class Map:
         
         # DAMS
         self.dams = []
-        self.dams.append(Dam(self.middle[0] - 10, self.middle[1] - 10))
-        dam2 = Dam(self.middle[0] + 10, self.middle[1] - 10)
-        dam2.rotate_counter_clockwise()
-        self.dams.append(dam2)
-
-        dam3 = Dam(self.middle[0] - 10, self.middle[1] + 10)
-        dam3.rotate_clockwise()
-        self.dams.append(dam3)
 
         self.skeleton_dam = None
-
 
         # BUILDINGS
         self.buildings = []
@@ -123,14 +114,19 @@ class Map:
             y -= self.surface_destination[1]
             i, j = self.convert_pixel_to_tile(x, y)
             if self.__calculate_distance_in_tiles((i, j), self.selected_builder.position) <= 5:
+                over_river = False
                 for river in self.rivers:
                     if river.contains_or_touches((i, j)) >= 0:
+                        over_river = True
                         if self.skeleton_dam is None or self.skeleton_dam.position != (i, j):
                             print(self.skeleton_dam)
                             self.skeleton_dam = Dam(i, j)
                             break
-                else:
+                if not over_river:
+                    print("else block")
                     self.skeleton_dam = None
+
+    
             
         if self.skeleton_dam is not None:
             elements_to_draw += self.skeleton_dam.get_representation()
@@ -282,3 +278,4 @@ class Map:
     #     current_position[0] = int(current_position[0])
     #     current_position[1] = int(current_position[1])
     #     return current_position
+    def river_reroute()
