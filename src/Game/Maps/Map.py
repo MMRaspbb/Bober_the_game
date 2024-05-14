@@ -1,3 +1,5 @@
+import copy
+
 import pygame
 from ..MapElements.River import River
 from ..MapElements.Bobrs.RegularBobr import RegularBobr
@@ -124,12 +126,11 @@ class Map:
                 for river in self.rivers:
                     if river.contains_or_touches((i, j)) >= 0:
                         if self.skeleton_dam is None or self.skeleton_dam.position != (i, j):
+                            print(self.skeleton_dam)
                             self.skeleton_dam = Dam(i, j)
-                            print("NEW DAM")
                             break
-                    else:
-                        self.skeleton_dam = None
-
+                else:
+                    self.skeleton_dam = None
             
         if self.skeleton_dam is not None:
             elements_to_draw += self.skeleton_dam.get_representation()
@@ -254,6 +255,11 @@ class Map:
                         dominant_river_points = self.rivers[j].get_river_points()
                         self.rivers[i].modify_river_end_points(dominant_river_points, point_position)
                         self.rivers[i].set_subriver(True)
+    def place_skeleton_dam(self):
+        print("I TRIED PLACING A DAM")
+        if self.skeleton_dam is not None:
+            self.dams.append(copy.deepcopy(self.skeleton_dam))
+        self.skeleton_dam = None
     # def __calculate_new_river_end(self, river1: River, river2: River, colision_point: tuple[int, int]) -> tuple[int, int]:
     #     #not used could be usefull for bober dams
     #     end1 = river1.get_default_end()

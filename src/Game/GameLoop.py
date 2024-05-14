@@ -69,6 +69,8 @@ class GameLoop:
     def __on_select_event(self, event: pygame.event.Event) -> None:
         if event.type == pygame.MOUSEBUTTONDOWN:
             if event.button == 1:
+                # placing dam if possible
+                self.map.place_skeleton_dam()
                 if not self.mouse_left_clicked:
                     self.element_start_pos = event.pos
                     element = self.map.get_selection(event.pos[0], event.pos[1])
