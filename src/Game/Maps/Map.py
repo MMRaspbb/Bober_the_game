@@ -1,10 +1,13 @@
 import pygame
 from ..MapElements.River import River
 from ..MapElements.Bobrs.RegularBobr import RegularBobr
-
+from ..MapElements.Bobrs.GathererBobr import GathererBobr
+from ..MapElements.resources.ForestResource import ForestResource
+from ..MapElements.resources.StoneResource import StoneResource
 
 class Map:
     def __init__(self, surface_parameters: tuple[int, int], surface_destination: tuple[int, int]) -> None:
+        pygame.font.init()
         # visible map width and height
         self.surface_destination = surface_destination
         self.width, self.height = surface_parameters
@@ -28,10 +31,10 @@ class Map:
         self.vertical_move_sum = 0
 
         # BOBRS
-        self.bobrs = [RegularBobr("Bobr1", self.middle[0] - 15, self.middle[1] - 10),
-                      RegularBobr("Bobr2", self.middle[0] + 15, self.middle[1] - 10),
-                      RegularBobr("Bobr3", self.middle[0] - 15, self.middle[1] + 10),
-                      RegularBobr("Bobr4", self.middle[0] + 15, self.middle[1] + 10)]
+        self.bobrs = [GathererBobr("G1", self.middle[0] - 15, self.middle[1] - 10),
+                      GathererBobr("G2", self.middle[0] + 15, self.middle[1] - 10),
+                      GathererBobr("G3", self.middle[0] - 15, self.middle[1] + 10),
+                      RegularBobr("G4", self.middle[0] + 15, self.middle[1] + 10)]
         
         # DAMS
         self.dams = []
@@ -42,8 +45,13 @@ class Map:
         # RIVERS
         self.rivers = []
 
+        # RESOURCES
+        self.resources = []
 
-        # self.rivers = []
+        self.resources.append(ForestResource(self.middle[0], self.middle[1]))
+        self.resources.append(StoneResource(self.middle[0] + 10, self.middle[1] + 10))
+
+        self.rivers = []
         # river1 = River([0, 0], [self.full_map_width, self.full_map_height])
         # self.rivers.append(river1)
         # river2 = River([0, self.full_map_height], [self.full_map_width, 0])
@@ -52,7 +60,12 @@ class Map:
         # # self.rivers.append(river3)
         # river1.river_state = 400
         # river2.river_state = 400
-        # river3.river_state = 400
+
+        self.curr_resources = {
+            "wood": 0,
+            "stone": 0,
+        }
+
         self.__update_mesh()
 
     def __update_mesh(self) -> None:
@@ -78,8 +91,12 @@ class Map:
         for river in self.rivers:
             elements_to_draw += river.get_representation()
 
+        for resource in self.resources:
+            elements_to_draw += resource.get_representation()
+
         for element in self.__map_elements():
             elements_to_draw += [element.get_representation()]
+
 
 
         for (x, y, color) in elements_to_draw:
@@ -89,6 +106,11 @@ class Map:
                 # Adjust the position of the rectangle by the offset to the middle of the map
                 rect.move_ip(-offset_x, -offset_y)
                 pygame.draw.rect(surface, color, rect)
+
+        wood_text = pygame.font.SysFont('Arial', 20).render(f"Wood: {self.curr_resources['wood']}", True, (0, 0, 0))
+        stone_text = pygame.font.SysFont('Arial', 20).render(f"Stone: {self.curr_resources['stone']}", True, (0, 0, 0))
+        surface.blit(wood_text, (10, 10))
+        surface.blit(stone_text, (10, 30))
         
 
     def move_map(self, diff_x: int, diff_y: int) -> None:
@@ -118,42 +140,40 @@ class Map:
         return elements
     
     
-    def move_bobrs(self) -> None:
+    def update_bobrs(self) -> None:
         for bobr in self.bobrs:
             bobr.move()
+        for resource in self.resources:
+            for bobr in self.bobrs:
+                if resource.is_position_in_resource(bobr.position[0], bobr.position[1]) and isinstance(bobr, GathererBobr):
+                    resource.set_bobr(bobr)
+                    self.curr_resources[resource.get_name] += resource.adjust_work_counter()
+                    break
+            else: 
+                resource.set_bobr(None)      
 
     def convert_pixel_to_tile(self, x: int, y: int) -> tuple[int, int]:
         # calculate tile indices from pixel coordinates in regards to the middle of the map
-        i = int((x + self.middle[0] * self.side) // self.side - self.tile_num_horizontal // 2)
-        j = int((y + self.middle[1] * self.side) // self.side - self.tile_num_vertical // 2)
+        i = int((x + self.middle[0] * self.side) // self.side - self.tile_num_horizontal // 2 - 1)
+        j = int((y + self.middle[1] * self.side) // self.side - self.tile_num_vertical // 2 - 1)
         return (i, j)
-    
-    def get_area_selection(self, start: tuple[int, int], end: tuple[int, int]) -> list[object]:
-        (start_i, start_j) = self.convert_pixel_to_tile(*start)
-        (end_i, end_j) = self.convert_pixel_to_tile(*end)
-        
-        if start_i > end_i:
-            start_i, end_i = end_i, start_i
-        if start_j > end_j:
-            start_j, end_j = end_j, start_j
-
-        selected_elements = []
-        for element in self.__map_elements():
-            if (start_i <= element.position[0] <= end_i and 
-                start_j <= element.position[1] <= end_j):
-                element.is_selected = True
-                selected_elements.append(element)
-        return selected_elements
 
     def get_selection(self, x: int, y: int) -> object:
         x -= self.surface_destination[0]
         y -= self.surface_destination[1]
         (i, j) = self.convert_pixel_to_tile(x, y)
-        print(i, j)
+        for resource in self.resources:
+            if resource.is_position_in_resource(i, j):
+                if resource.bobr_in():
+                    print("SELECTED BOBR IN RESOURCE")
+                    resource.bobr.is_selected = True
+                    return resource.bobr
+            
         for element in self.__map_elements():
             if element.position == (i, j):
                 element.is_selected = True
                 return element
+
             
 
     def update_surface_parameters(self, surface_parameters: tuple, surface_destination: tuple) -> None:
@@ -171,15 +191,13 @@ class Map:
             self.current_map_upper_left[1] -= 3
             self.current_map_lower_right[0] += 4
             self.current_map_lower_right[1] += 3
-            self.colors[(self.current_map_upper_left[0], self.current_map_upper_left[1])] = "Purple"
-            self.colors[(self.current_map_lower_right[0], self.current_map_lower_right[1])] = "Purple"
-            self.bobrs.append(RegularBobr("tmp", self.current_map_upper_left[0], self.current_map_upper_left[1]))
-            self.bobrs.append(RegularBobr("tmp", self.current_map_lower_right[0], self.current_map_lower_right[1]))
-
+           
     def update_rivers(self):
         for i in range(len(self.rivers)):
             if self.rivers[i].push_river_state():
                 pushed_point = self.rivers[i].get_pushed_point()
+                if self.rivers[i].is_subriver:
+                    continue
                 for j in range(len(self.rivers)):
                     if j == i:
                         continue
@@ -188,6 +206,7 @@ class Map:
                         self.rivers[i].block_river()
                         dominant_river_points = self.rivers[j].get_river_points()
                         self.rivers[i].modify_river_end_points(dominant_river_points, point_position)
+                        self.rivers[i].set_subriver(True)
     # def __calculate_new_river_end(self, river1: River, river2: River, colision_point: tuple[int, int]) -> tuple[int, int]:
     #     #not used could be usefull for bober dams
     #     end1 = river1.get_default_end()

@@ -8,6 +8,7 @@ class River:
         self.__interpolation_nodes_distance = 10
         self.__river_segment_length = 1
         self.__delineate_river()
+        self.__is_subriver = False
         if end[0] < beginning[0]:
             self.river_points.reverse()
         self.river_state = 0
@@ -26,6 +27,7 @@ class River:
                 self.river_points.append((x1 + versor[0] * j, y1 + versor[1] * j))
     def push_river_state(self) -> bool: #returns if the river was pushed or just stayed in place
         if (self.river_state < self.__river_state_limiter):
+            # print(self.__river_state_limiter)
             self.river_state += 1
             return True
         return False
@@ -81,7 +83,15 @@ class River:
             updated_points.append(self.river_points[i])
         for i in range(begin_index, len(new_river_points)):
             updated_points.append(new_river_points[i])
-        self.__river_state_limiter = len(updated_points)
+        self.__river_state_limiter = len(updated_points) - 1
         self.river_points = updated_points
+
     def get_river_points(self) -> list[tuple[int, int]]:
         return self.river_points
+    
+    def set_subriver(self, is_subriver: bool) -> None:
+        self.__is_subriver = is_subriver
+
+    @property
+    def is_subriver(self) -> bool:
+        return self.__is_subriver

@@ -45,13 +45,6 @@ class AbstractBobr(ABC, Selectable):
         '''
         return (self.__x, self.__y)
     
-    
-    @abstractmethod
-    def build(self, mouse_x: int, mouse_y: int, building: BuildingEnum) -> None:
-        '''
-        Build building on Bobr position
-        '''
-        pass
 
     @abstractmethod
     def get_representation(self) -> dict:

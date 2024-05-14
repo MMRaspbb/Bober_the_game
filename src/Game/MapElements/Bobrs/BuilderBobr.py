@@ -1,14 +1,19 @@
 from .AbstractBobr import AbstractBobr
-from ..BuildingEnum import BuildingEnum
 
-class RegularBobr(AbstractBobr):
+class GathererBobr(AbstractBobr):
     '''
     Regular Bobr class
     '''
     
     def __init__(self, name: str, x: int, y: int):
         super().__init__(name, x, y)
-        self.color = "Brown"
+        self.color = "orange"
+
+    def build(self):
+        '''
+        Build building
+        '''
+        pass
     
     
     def get_representation(self) -> dict:

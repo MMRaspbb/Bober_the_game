@@ -32,7 +32,7 @@ class GameLoop:
             self.map.update_rivers()
 
             self.map.draw(self.surface)
-            self.map.move_bobrs()
+            self.map.update_bobrs()
             if frames_passed % 1 == 0:
                 self.map.expand_borders()
 
@@ -46,7 +46,6 @@ class GameLoop:
     def __event_handler(self) -> None:
         for event in pygame.event.get():
             self.__on_drag_event(event)
-            self.__on_area_select_event(event)
             self.__on_select_event(event)
             if event.type == pygame.QUIT:
                 pygame.quit()
@@ -65,28 +64,6 @@ class GameLoop:
             if event.button == 3:
                 self.mouse_right_down = False
 
-    def __on_area_select_event(self, event: pygame.event.Event) -> None:
-        if event.type == pygame.MOUSEBUTTONDOWN:
-            if event.button == 1:
-                if not self.mouse_left_down:
-                    self.elements_start_pos = event.pos
-                    self.mouse_left_down = True
-                if self.selected_elements:
-                    move_vector = (event.pos[0] - self.elements_end_pos[0], event.pos[1] - self.elements_end_pos[1])
-                    for element in self.selected_elements:
-                        path = self.pathfinder.find_path(element.position, (element.position[0] + move_vector[0], element.position[1] + move_vector[1]))
-                        element.set_path(path)
-                        element.is_selected = False
-                    self.selected_elements = []
-
-        if event.type == pygame.MOUSEBUTTONUP:
-            if event.button == 1:
-                if event.pos != self.element_start_pos and self.mouse_left_down:
-                    self.elements_end_pos = event.pos
-                    self.selected_elements = self.map.get_area_selection(self.elements_start_pos, self.elements_end_pos)
-                    self.mouse_left_down = False
-                else:
-                    self.mouse_left_down = False
 
     def __on_select_event(self, event: pygame.event.Event) -> None:
         if event.type == pygame.MOUSEBUTTONDOWN:
