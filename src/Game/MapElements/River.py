@@ -8,7 +8,7 @@ class River:
         self.__interpolation_nodes_distance = 10
         self.__river_segment_length = 1
         self.__delineate_river()
-        self.__is_subriver = False
+        self.__subriver_from_state = len(self.river_points) - 1
         if end[0] < beginning[0]:
             self.river_points.reverse()
         self.river_state = 0
@@ -26,27 +26,16 @@ class River:
             for j in range(self.__river_segment_length):
                 self.river_points.append((x1 + versor[0] * j, y1 + versor[1] * j))
     def push_river_state(self) -> bool: #returns if the river was pushed or just stayed in place
-        if (self.river_state < self.__river_state_limiter):
-            # print(self.__river_state_limiter)
+        if (self.river_state < len(self.river_points) - 1):
             self.river_state += 1
             return True
         return False
-
-    def block_river(self) -> None:
-        self.__river_state_limiter = self.river_state
-    def set_river_limit(self, limit: int) -> None:
-        self.__river_state_limiter = limit
-        if(self.river_state > self.__river_state_limiter):
-            self.river_state = self.__river_state_limiter
 
     def get_pushed_point(self) -> tuple[int, int]:
         return self.river_points[self.river_state]
 
     def get_default_end(self) -> tuple[int, int]:
         return self.river_points[-1]
-    @property
-    def get_strength(self) -> int:
-        return self.__strength
     def contains_or_touches(self, point: tuple[int, int]) -> bool:
         # temporary solution, can be solved quicker with binary search
 
@@ -89,9 +78,9 @@ class River:
     def get_river_points(self) -> list[tuple[int, int]]:
         return self.river_points
     
-    def set_subriver(self, is_subriver: bool) -> None:
-        self.__is_subriver = is_subriver
+    def set_subriver_state(self, subriver_state: int) -> None:
+        self.__subriver_from_state = subriver_state
 
     @property
-    def is_subriver(self) -> bool:
-        return self.__is_subriver
+    def is_subriver_from(self) -> int:
+        return self.__subriver_from_state

@@ -240,17 +240,14 @@ class Map:
         for i in range(len(self.rivers)):
             if self.rivers[i].push_river_state():
                 pushed_point = self.rivers[i].get_pushed_point()
-                if self.rivers[i].is_subriver:
-                    continue
                 for j in range(len(self.rivers)):
                     if j == i:
                         continue
                     point_position = self.rivers[j].contains_or_touches(pushed_point)
-                    if point_position >= 0:
-                        self.rivers[i].block_river()
+                    if point_position >= 0 and self.rivers[j].is_subriver_from > point_position:
                         dominant_river_points = self.rivers[j].get_river_points()
                         self.rivers[i].modify_river_end_points(dominant_river_points, point_position)
-                        self.rivers[i].set_subriver(True)
+                        self.rivers[i].set_subriver_state(pushed_point)
     def place_skeleton_dam(self):
         print("I TRIED PLACING A DAM")
         if self.skeleton_dam is not None:
@@ -278,4 +275,12 @@ class Map:
     #     current_position[0] = int(current_position[0])
     #     current_position[1] = int(current_position[1])
     #     return current_position
-    def river_reroute()
+    def river_reroute(self, river: River, collide_point: int, dam: Dam) -> None:
+        river_points = river.get_river_points()
+        previous_river_point = river_points[collide_point - 1]
+        vector = (river_points[collide_point][0] - previous_river_point[0], river_points[collide_point][1] - previous_river_point[1])
+        dam_orientation = dam.get_orientation()
+        
+
+        #tmp_river = River(collide_point)
+        

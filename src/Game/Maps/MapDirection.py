@@ -28,5 +28,6 @@ class MapDirection(Enum):
         directions = [list(MapDirection)[i] for i in range(8)]
         index = directions.index(current_direction)
         return directions[(index - 1) % 8]
+    
 
         

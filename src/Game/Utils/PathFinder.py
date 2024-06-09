@@ -33,8 +33,10 @@ class PathFinder():
         return True
 
     def find_path(self, start: tuple[int, int], end: tuple[int, int]) -> list[MapDirection]:
-        (start_x, start_y) = self.__map.convert_pixel_to_tile(*start)
-        (end_x, end_y) = self.__map.convert_pixel_to_tile(*end)
+        start_x, start_y = start[0] - self.__map.surface_destination[0], start[1] - self.__map.surface_destination[1]
+        end_x, end_y = end[0] - self.__map.surface_destination[0], end[1] - self.__map.surface_destination[1]
+        (start_x, start_y) = self.__map.convert_pixel_to_tile(start_x, start_y)
+        (end_x, end_y) = self.__map.convert_pixel_to_tile(end_x, end_y)
         print("Path from: ", start_x, start_y, " to: ", end_x, end_y)
 
         # perform A* to find the path
