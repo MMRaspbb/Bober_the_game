@@ -76,8 +76,6 @@ class Map:
         self.resources.append(ForestResource(self.middle[0], self.middle[1] + 20))
         self.resources.append(StoneResource(self.middle[0] + 10, self.middle[1] + 10))
         self.resources.append(FoodResource(self.middle[0] - 10, self.middle[1] - 10))
-        # self.resources.append(ForestResource(self.middle[0], self.middle[1]))
-        # self.resources.append(StoneResource(self.middle[0] + 10, self.middle[1] + 10))
 
         self.rivers = []
         river1 = River([0, 0], [self.full_map_width, self.full_map_height])
@@ -118,21 +116,22 @@ class Map:
         for river in self.rivers:
             for river_x, river_y, river_img in river.get_representation():
                 if (river_x >= mid_i_start and river_x < mid_i_end and river_y >= mid_j_start and river_y < mid_j_end):
-                    self.__draw_image(surface, river_img, river_x, river_y, offset_x, offset_y, 1)
+                    self.__draw_image(surface, river_img, river_x, river_y, offset_x, offset_y)
 
         for dam in self.dams:
             for dam_x, dam_y, dam_img in dam.get_representation():
                 if (dam_x >= mid_i_start and dam_x < mid_i_end and dam_y >= mid_j_start and dam_y < mid_j_end):
-                    self.__draw_image(surface, dam_img, dam_x, dam_y, offset_x, offset_y, 1)
+                    self.__draw_image(surface, dam_img, dam_x, dam_y, offset_x, offset_y)
 
         for resource in self.resources:
             for resource_x, resource_y, resource_img in resource.get_representation():
                 if (resource_x >= mid_i_start and resource_x < mid_i_end and resource_y >= mid_j_start and resource_y < mid_j_end):
-                    self.__draw_image(surface, resource_img, resource_x, resource_y, offset_x, offset_y, 1)
+                    self.__draw_image(surface, resource_img, resource_x, resource_y, offset_x, offset_y)
 
         base_x, base_y, base_img = self.base.get_representation()[0]
         if (base_x >= mid_i_start and base_x < mid_i_end and base_y >= mid_j_start and base_y < mid_j_end):
-            self.__draw_image(surface, base_img, base_x, base_y, offset_x, offset_y, 8)
+            base_img = pygame.transform.scale(base_img, (self.side * 8, self.side * 8))
+            self.__draw_image(surface, base_img, base_x, base_y, offset_x, offset_y, base_img.get_width() // 2, base_img.get_height() // 2)
 
 
         self.draw_base_menu()
@@ -142,45 +141,6 @@ class Map:
             skeleton_x, skeleton_y, skeleton_img = skeleton
             if (skeleton_x >= mid_i_start and skeleton_x < mid_i_end and skeleton_y >= mid_j_start and skeleton_y < mid_j_end):
                 self.__draw_image(surface, skeleton_img, skeleton_x, skeleton_y, offset_x, offset_y, 1)
-
-        # for (x, y, img) in self.elements_to_draw:
-        #     if (x >= mid_i_start and x < mid_i_end and y >= mid_j_start and y < mid_j_end):
-        #         rect = self.mesh[x][y].copy()
-        #         rect.move_ip(-offset_x, -offset_y)
-        #         surface.blit(img, rect.topleft)
-            elements_to_draw += resource.get_representation()
-
-        for element in self.__map_elements():
-            elements_to_draw += [element.get_representation()]
-
-        if self.selected_builder is not None:
-            x, y = pygame.mouse.get_pos()
-            x -= self.surface_destination[0]
-            y -= self.surface_destination[1]
-            i, j = self.convert_pixel_to_tile(x, y)
-            if self.__calculate_distance_in_tiles((i, j), self.selected_builder.position) <= 5:
-                over_river = False
-                for river in self.rivers:
-                    if river.contains_or_touches((i, j)) >= 0:
-                        over_river = True
-                        if self.skeleton_dam is None or self.skeleton_dam.position != (i, j):
-                            self.skeleton_dam = Dam(i, j)
-                            break
-                if not over_river:
-                    self.skeleton_dam = None
-
-    
-            
-        if self.skeleton_dam is not None:
-            elements_to_draw += self.skeleton_dam.get_representation()
-
-        for (x, y, color) in elements_to_draw:
-            if (x >= mid_i_start and x < mid_i_end and y >= mid_j_start and y < mid_j_end):
-                rect = self.mesh[x][y].copy()  # Make a copy of the rectangle to avoid modifying the original
-
-                # Adjust the position of the rectangle by the offset to the middle of the map
-                rect.move_ip(-offset_x, -offset_y)
-                pygame.draw.rect(surface, color, rect)
 
 
         wood_text = pygame.font.SysFont('Arial', 20).render(f"Wood: {self.curr_resources['wood']}", True, (0, 0, 0))
@@ -196,8 +156,7 @@ class Map:
                 rect = self.mesh[pos[0]][pos[1]].copy()
                 rect.move_ip(-offset_x, -offset_y)
                 img = pygame.transform.scale(img, (self.side * 4, self.side * 4))
-                surface.blit(img, (rect.topleft[0] - img.get_width() // 2, rect.topleft[1] - img.get_height() // 2))
-                #self.__draw_image(surface, img, pos[0], pos[1], offset_x, offset_y, 4, img.get_width() // 2, img.get_height() // 2)
+                self.__draw_image(surface, img, pos[0], pos[1], offset_x, offset_y, img.get_width() // 2, img.get_height() // 2)
         
 
         self.draw_price(surface)
@@ -308,42 +267,20 @@ class Map:
     def update_rivers(self):
         for i in range(len(self.rivers)):
             self.rivers[i].push_river_state()
-            # if self.rivers[i].push_river_state() and self.rivers[i].is_not_subriver():
-            #     pushed_point = self.rivers[i].get_pushed_point()
-            #     for j in range(len(self.rivers)):
-            #         if i == j:
-            #             continue
-            #         point_position = self.rivers[j].contains_or_touches(pushed_point)
-            #         if point_position >= 0:
-            #             dominant_river_points = self.rivers[j].get_river_points()
-            #             self.rivers[i].modify_river_end_points(dominant_river_points, point_position)
-            #             self.rivers[i].add_subriver(self.rivers[j], pushed_point)
-            #             self.rivers[j].add_dominant(self.rivers[i], pushed_point)
-    def place_skeleton_dam(self):
+   
+
+    def place_skeleton(self):
         if self.skeleton_dam is not None:
             for river in self.rivers:
-                colide_point = river.contains_or_touches(self.skeleton_dam.position)
-                if colide_point != -1 and self.river_reroute(river, self.skeleton_dam.position, self.skeleton_dam):
+                collide_point = river.contains_or_touches(self.skeleton_dam.position)
+                if collide_point != -1 and self.river_reroute(river, self.skeleton_dam.position, self.skeleton_dam):
                     self.dams.append(copy.deepcopy(self.skeleton_dam))
                     break
-            if self.rivers[i].push_river_state():
-                pushed_point = self.rivers[i].get_pushed_point()
-                for j in range(len(self.rivers)):
-                    if j == i:
-                        continue
-                    point_position = self.rivers[j].contains_or_touches(pushed_point)
-                    if point_position >= 0 and self.rivers[j].is_subriver_from > point_position:
-                        dominant_river_points = self.rivers[j].get_river_points()
-                        self.rivers[i].modify_river_end_points(dominant_river_points, point_position)
-                        self.rivers[i].set_subriver_state(pushed_point)
-                        
-    def place_skeleton(self):
-        if self.skeleton_dam is not None and self.__pay(self.dam_price):
-            self.dams.append(copy.deepcopy(self.skeleton_dam))
         self.skeleton_dam = None
         if self.skeleton_farm is not None and self.__pay(self.farm_price):
             self.resources.append(copy.deepcopy(self.skeleton_farm))
         self.skeleton_farm = None
+        self.price_over_coursor = None
  
     def __pay(self, price: dict) -> bool:
         for resource, amount in price.items():
@@ -353,7 +290,6 @@ class Map:
             self.curr_resources[resource] -= amount
         return True
     
-    def river_reroute(self, river: River, collide_point: int, dam: Dam) -> None:
     def river_reroute(self, river: River,  collide_point: tuple[int, int], dam: Dam) -> bool:
         #river = self.find_dominant_river(collide_point)
         river_points = river.get_river_points()
@@ -363,9 +299,22 @@ class Map:
 
         vector = (river_points[collide_index][0] - previous_river_point[0], river_points[collide_index][1] - previous_river_point[1])
         dam_orientation = dam.get_orientation()
-        
+        if vector == dam_orientation.value or vector == dam_orientation.get_opposite(dam_orientation) or vector == dam_orientation.get_double_next(dam_orientation).value or vector == dam_orientation.get_double_previous(dam_orientation).value or not self.__pay(self.dam_price):
+            return False
+        bounce_vector = dam.get_bounced_direction(vector).value
+        end_x = river_points[collide_index][0]
+        end_y = river_points[collide_index][1]
+        while end_x != 0 and end_x != self.full_map_width and end_y != 0 and end_y != self.full_map_height:
+            end_x += bounce_vector[0]
+            end_y += bounce_vector[1]
 
-        #tmp_river = River(collide_point)
+        new_river_points = River.delineate_river((river_points[collide_index][0], river_points[collide_index][1]), (end_x, end_y), 10, 1)
+
+        river.set_river_state(collide_index)
+        river.modify_river_end_points(new_river_points, 0)
+
+        # self.reroute_river_subs_and_fix_dominant(river, collide_point, new_river_points)
+        return True
 
     def draw_base_menu(self):
         if self.base_selected:
@@ -459,57 +408,8 @@ class Map:
             if any([resource.is_position_in_resource(x, y) for resource in self.resources]):
                 return False
         return True
-    def __draw_image(self, surface: pygame.Surface, image: pygame.Surface, x: int, y: int, offset_x: int, offset_y: int, scale: int, rect_offset_x = 0, rect_offset_y = 0) -> None:
+    def __draw_image(self, surface: pygame.Surface, image: pygame.Surface, x: int, y: int, offset_x: int, offset_y: int, rect_offset_x = 0, rect_offset_y = 0) -> None:
         rect = self.mesh[x][y].copy()
         rect.move_ip(-offset_x, -offset_y)
-        image = pygame.transform.scale(image, (self.side * scale, self.side * scale))
         surface.blit(image, (rect.topleft[0] - rect_offset_x, rect.topleft[1] - rect_offset_y))
-                
-        if vector == dam_orientation.value or vector == dam_orientation.get_opposite(dam_orientation) or vector == dam_orientation.get_double_next(dam_orientation).value or vector == dam_orientation.get_double_previous(dam_orientation).value:
-            return False
-        bounce_vector = dam.get_bounced_direction(vector).value
-        end_x = river_points[collide_index][0]
-        end_y = river_points[collide_index][1]
-        while end_x != 0 and end_x != self.full_map_width and end_y != 0 and end_y != self.full_map_height:
-            end_x += bounce_vector[0]
-            end_y += bounce_vector[1]
-
-        new_river_points = River.delineate_river((river_points[collide_index][0], river_points[collide_index][1]), (end_x, end_y), 10, 1)
-
-        river.set_river_state(collide_index)
-        river.modify_river_end_points(new_river_points, 0)
-
-        # self.reroute_river_subs_and_fix_dominant(river, collide_point, new_river_points)
-        return True
-    # def find_dominant_river(self, point: tuple[int, int]) -> River:
-    #     for river in self.rivers:
-    #         river_points = river.get_river_points()
-    #         connect_index = river.contains_or_touches(point)
-    #         is_dominant = True
-    #         for i in range(0, connect_index):
-    #             for subriver_points in river.get_subriver_points():
-    #                 if subriver_points == river_points[i]:
-    #                     is_dominant = False
-    #                     break
-    #             if not is_dominant:
-    #                 break
-    #         if is_dominant:
-    #             print(river)
-    #             return river
-    # def reroute_river_subs_and_fix_dominant(self, river: River, colide_point: tuple[int, int], new_river_points: list[tuple[int, int]]) -> None:
-    #     sub_rivers = river.get_rivers_subs()
-    #     sub_colide_points = river.get_rivers_subs_points()
-    #     for i in range(len(sub_rivers)):
-    #         colide_index = sub_rivers[i].contains_or_touches(colide_point)
-    #         sub_river_points = sub_rivers[i].get_river_points()
-    #         to_reroute = False
-    #         for j in range(0, colide_index):
-    #             if sub_river_points == colide_point:
-    #                 to_reroute = True
-    #                 break
-    #         if to_reroute:
-    #             print("rerouting sub")
-    #             sub_rivers[i].set_river_state(colide_index)
-    #             sub_rivers[i].modify_river_end_points(new_river_points, 0)
-
-
+      
