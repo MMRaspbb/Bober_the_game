@@ -1,18 +1,25 @@
 from .AbstractResource import AbstractResource
 import pygame
 
-class ForestResource(AbstractResource):
+class FoodResource(AbstractResource):
     '''
     Forest Resource
     '''
     
     def __init__(self, x: int, y: int) -> None:
-        self.__name = "wood"
-        self.__work_needed = 300
-        self.__reward = 1
+        self.__name = "food"
+        self.__work_needed = 400
+        self.__reward = 2
         self.__resource_size = 5
 
         super().__init__(x, y, self.__work_needed, self.__reward, self.__name)
+    
+    @staticmethod
+    def get_resource_size() -> int:
+        '''
+        Get resource size
+        '''
+        return 5
 
     def is_position_in_resource(self, x: int, y: int) -> bool:
         '''
@@ -24,7 +31,7 @@ class ForestResource(AbstractResource):
         '''
         Get Resource representation
         '''
-        img = pygame.image.load("src/resources/forest.png")
+        img = pygame.image.load("src/resources/farmland.png")
         representation = []
         for i in range(self.__resource_size):
             for j in range(self.__resource_size):

@@ -1,4 +1,5 @@
 from .AbstractBobr import AbstractBobr
+import pygame
 
 class BuilderBobr(AbstractBobr):
     '''
@@ -16,10 +17,11 @@ class BuilderBobr(AbstractBobr):
         pass
     
     
-    def get_representation(self) -> dict:
-        '''
-        Get Bobr representation
-        '''
-        if super().is_selected:
-            return [super().position[0], super().position[1], "Red"]
-        return [super().position[0], super().position[1], self.color]
+    def get_representation(self):
+        
+        # load builder.png from resources
+        img = pygame.image.load("src/resources/builder.png")
+        if self.is_selected:
+            img.fill((255, 0, 0, 255), special_flags=pygame.BLEND_RGB_MULT)
+        return self.position, img
+

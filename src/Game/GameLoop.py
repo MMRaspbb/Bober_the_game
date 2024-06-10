@@ -21,6 +21,7 @@ class GameLoop:
     mouse_left_clicked = False
     mouse_left_down = False
     selected_elements = []
+    selected_element = None
 
     def initialize(self):
         frames_passed = 0
@@ -37,6 +38,7 @@ class GameLoop:
                 self.map.expand_borders()
 
 
+            # print(self.map.selected_builder)
 
             pygame.display.update()
             self.clock.tick(30)
@@ -70,7 +72,7 @@ class GameLoop:
         if event.type == pygame.MOUSEBUTTONDOWN:
             if event.button == 1:
                 # placing dam if possible
-                self.map.place_skeleton_dam()
+                self.map.place_skeleton()
                 if not self.mouse_left_clicked:
                     self.element_start_pos = event.pos
                     element = self.map.get_selection(event.pos[0], event.pos[1])
@@ -84,6 +86,8 @@ class GameLoop:
                     self.selected_element.is_selected = False
                     self.mouse_left_clicked = False
                     self.selected_element = None
+                    self.map.selected_builder = None
+                    self.map.base_selected = False
 
     def __on_scroll_event(self, event: pygame.event.Event) -> None:
         if event.type == pygame.MOUSEWHEEL:

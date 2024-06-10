@@ -1,19 +1,12 @@
 from Game.Utils.RiverNodesCreator import RiverNodesCreator
+import pygame
 
 
 class River:
     def __init__(self, beginning: list[int, int], end: list[int, int]) -> None:
-        self.__beginning = beginning
-        self.__end = end
-        # self.__interpolation_nodes_distance = 10
-        # self.__river_segment_length = 1
         self.river_points = self.delineate_river(beginning, end, 10, 1)
         self.river_state = 0
-        self.__river_state_limiter = len(self.river_points) - 1
-        self.__subriver_to = []
-        self.__subriver_from = []
-        self.__dominant_to = []
-        self.__dominant_from = []
+
 
     @staticmethod
     def delineate_river(beginning, end, interpolation_nodes_distance, river_segment_length):
@@ -27,8 +20,7 @@ class River:
             versor = ((x2 - x1) / river_segment_length, (y2 - y1) / river_segment_length)
             for j in range(river_segment_length):
                 river_points.append((x1 + versor[0] * j, y1 + versor[1] * j))
-        # if end[0] < beginning[0]:
-        #     river_points.reverse()
+
         return river_points
 
     def push_river_state(self) -> bool:  # returns if the river was pushed or just stayed in place
@@ -57,19 +49,20 @@ class River:
     def get_representation(self) -> list:
         result = []
         river_points = self.river_points
+        img = pygame.image.load("src/resources/water.png")
         for i in range(self.river_state):
-            result.append([int(river_points[i][0]), int(river_points[i][1]), 'blue'])
-            result.append([int(river_points[i][0] + 1), int(river_points[i][1]), 'blue'])
-            result.append([int(river_points[i][0] - 1), int(river_points[i][1]), 'blue'])
-            result.append([int(river_points[i][0]), int(river_points[i][1] + 1), 'blue'])
-            result.append([int(river_points[i][0]), int(river_points[i][1] - 1), 'blue'])
+            result.append([int(river_points[i][0]), int(river_points[i][1]), img])
+            result.append([int(river_points[i][0] + 1), int(river_points[i][1]), img])
+            result.append([int(river_points[i][0] - 1), int(river_points[i][1]), img])
+            result.append([int(river_points[i][0]), int(river_points[i][1] + 1), img])
+            result.append([int(river_points[i][0]), int(river_points[i][1] - 1), img])
             if i + 1 < len(river_points):
                 versor = (river_points[i + 1][0] - river_points[i][0], river_points[i + 1][1] - river_points[i][1])
                 if (versor[0] > 0):
                     if (versor[1] > 0):
-                        result.append([int(river_points[i][0]), int(river_points[i][1] + 2), 'blue'])
+                        result.append([int(river_points[i][0]), int(river_points[i][1] + 2), img])
                     elif (versor[1] < 0):
-                        result.append([int(river_points[i][0]), int(river_points[i][1] - 2), 'blue'])
+                        result.append([int(river_points[i][0]), int(river_points[i][1] - 2), img])
 
         return result
 
@@ -87,32 +80,3 @@ class River:
 
     def set_river_state(self, state: int) -> None:
         self.river_state = state
-
-    # def add_subriver(self, river, point: tuple[int, int]):
-    #     self.__subriver_to.append(river)
-    #     self.__subriver_from.append(point)
-    #
-    # def add_dominant(self, river: 'River', point: tuple[int, int]):
-    #     self.__dominant_to.append(river)
-    #     self.__dominant_from.append(point)
-    #
-    # def remove_subriver(self, river: 'River') -> None:
-    #     i = 0
-    #     while self.__subriver_to[i] != river:
-    #         i += 1
-    #     self.__subriver_to.pop(i)
-    #     self.__subriver_from.pop(i)
-    # def remove_dominant(self, river: 'River') -> None:
-    #     i = 0
-    #     while self.__subriver_to[i] != river:
-    #         i += 1
-    #     self.__dominant_to.pop(i)
-    #     self.__dominant_from.pop(i)
-    # def is_not_subriver(self) -> bool:
-    #     return self.__subriver_to == []
-    # def get_subriver_points(self) -> list[tuple[int, int]]:
-    #     return self.__subriver_from
-    # def get_rivers_subs(self) -> list['River']:
-    #     return self.__dominant_to
-    # def get_rivers_subs_points(self) -> list[tuple[int, int]]:
-    #     return self.__dominant_from

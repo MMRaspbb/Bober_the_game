@@ -1,4 +1,5 @@
 from .AbstractResource import AbstractResource
+import pygame
 
 class StoneResource(AbstractResource):
     '''
@@ -23,9 +24,10 @@ class StoneResource(AbstractResource):
         '''
         Get Resource representation
         '''
+        img = pygame.image.load("src/resources/cobble.png")
         representation = []
         for i in range(self.__resource_size):
             for j in range(self.__resource_size):
-                representation.append([self.position[0] + i, self.position[1] + j, 'gray'])
+                representation.append([self.position[0] + i, self.position[1] + j, img])
         return representation
     

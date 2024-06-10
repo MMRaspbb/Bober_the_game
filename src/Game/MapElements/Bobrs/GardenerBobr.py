@@ -1,14 +1,14 @@
 from .AbstractBobr import AbstractBobr
 import pygame
 
-class GathererBobr(AbstractBobr):
+class GardenerBobr(AbstractBobr):
     '''
-    Regular Bobr class
+    Gardener Bobr class
     '''
     
     def __init__(self, name: str, x: int, y: int):
         super().__init__(name, x, y)
-        self.color = "purple"
+        self.color = "dark blue"
     
     
     def get_representation(self) -> dict:
@@ -16,8 +16,7 @@ class GathererBobr(AbstractBobr):
         Get Bobr representation
         '''
         # load builder.png from resources
-        img = pygame.image.load("src/resources/gatherer.png")
+        img = pygame.image.load("src/resources/gardener.png")
         if self.is_selected:
             img.fill((255, 0, 0, 255), special_flags=pygame.BLEND_RGB_MULT)
         return self.position, img
-    

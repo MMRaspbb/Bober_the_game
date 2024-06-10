@@ -15,6 +15,20 @@ class AbstractBobr(ABC, Selectable):
         self.__y = y
         self.__path = []
 
+    @property
+    def get_x(self) -> int:
+        '''
+        Get x coordinate
+        '''
+        return self.__x
+    
+    @property
+    def get_y(self) -> int:
+        '''
+        Get y coordinate
+        '''
+        return self.__y
+
     def move(self) -> None:
         '''
         Move Bobr in given direction
