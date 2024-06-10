@@ -8,6 +8,9 @@ from ..MapElements.Bobrs.BuilderBobr import BuilderBobr
 from ..MapElements.resources.ForestResource import ForestResource
 from ..MapElements.resources.StoneResource import StoneResource
 from ..MapElements.buildings.Dam import Dam
+from ..Maps.MapDirection import MapDirection
+from ..Utils.RiverNodesCreator import RiverNodesCreator
+
 
 class Map:
     def __init__(self, surface_parameters: tuple[int, int], surface_destination: tuple[int, int]) -> None:
@@ -56,8 +59,8 @@ class Map:
         # RESOURCES
         self.resources = []
 
-        self.resources.append(ForestResource(self.middle[0], self.middle[1]))
-        self.resources.append(StoneResource(self.middle[0] + 10, self.middle[1] + 10))
+        # self.resources.append(ForestResource(self.middle[0], self.middle[1]))
+        # self.resources.append(StoneResource(self.middle[0] + 10, self.middle[1] + 10))
 
         self.rivers = []
         river1 = River([0, 0], [self.full_map_width, self.full_map_height])
@@ -68,7 +71,6 @@ class Map:
         # self.rivers.append(river3)
         river1.river_state = 400
         river2.river_state = 400
-
         self.curr_resources = {
             "wood": 0,
             "stone": 0,
@@ -119,11 +121,9 @@ class Map:
                     if river.contains_or_touches((i, j)) >= 0:
                         over_river = True
                         if self.skeleton_dam is None or self.skeleton_dam.position != (i, j):
-                            print(self.skeleton_dam)
                             self.skeleton_dam = Dam(i, j)
                             break
                 if not over_river:
-                    print("else block")
                     self.skeleton_dam = None
 
     
@@ -204,7 +204,6 @@ class Map:
         for resource in self.resources:
             if resource.is_position_in_resource(i, j):
                 if resource.bobr_in():
-                    print("SELECTED BOBR IN RESOURCE")
                     resource.bobr.is_selected = True
                     return resource.bobr
         
@@ -238,49 +237,80 @@ class Map:
            
     def update_rivers(self):
         for i in range(len(self.rivers)):
-            if self.rivers[i].push_river_state():
-                pushed_point = self.rivers[i].get_pushed_point()
-                for j in range(len(self.rivers)):
-                    if j == i:
-                        continue
-                    point_position = self.rivers[j].contains_or_touches(pushed_point)
-                    if point_position >= 0 and self.rivers[j].is_subriver_from > point_position:
-                        dominant_river_points = self.rivers[j].get_river_points()
-                        self.rivers[i].modify_river_end_points(dominant_river_points, point_position)
-                        self.rivers[i].set_subriver_state(pushed_point)
+            self.rivers[i].push_river_state()
+            # if self.rivers[i].push_river_state() and self.rivers[i].is_not_subriver():
+            #     pushed_point = self.rivers[i].get_pushed_point()
+            #     for j in range(len(self.rivers)):
+            #         if i == j:
+            #             continue
+            #         point_position = self.rivers[j].contains_or_touches(pushed_point)
+            #         if point_position >= 0:
+            #             dominant_river_points = self.rivers[j].get_river_points()
+            #             self.rivers[i].modify_river_end_points(dominant_river_points, point_position)
+            #             self.rivers[i].add_subriver(self.rivers[j], pushed_point)
+            #             self.rivers[j].add_dominant(self.rivers[i], pushed_point)
     def place_skeleton_dam(self):
-        print("I TRIED PLACING A DAM")
         if self.skeleton_dam is not None:
-            self.dams.append(copy.deepcopy(self.skeleton_dam))
+            for river in self.rivers:
+                colide_point = river.contains_or_touches(self.skeleton_dam.position)
+                if colide_point != -1 and self.river_reroute(river, self.skeleton_dam.position, self.skeleton_dam):
+                    self.dams.append(copy.deepcopy(self.skeleton_dam))
+                    break
         self.skeleton_dam = None
-    # def __calculate_new_river_end(self, river1: River, river2: River, colision_point: tuple[int, int]) -> tuple[int, int]:
-    #     #not used could be usefull for bober dams
-    #     end1 = river1.get_default_end()
-    #     end2 = river2.get_default_end()
-    #     versor1 = (end1[0] - colision_point[0], end1[1] - colision_point[1])
-    #     versor2 = (end2[0] - colision_point[0], end2[1] - colision_point[1])
-    #     bigger_parameter = versor1[0]
-    #     if versor1[0] < versor1[1]:
-    #         bigger_parameter = versor1[1]
-    #     versor1 = (versor1[0] * river1.get_strength / bigger_parameter, versor1[1] * river1.get_strength / bigger_parameter)
-    #     bigger_parameter = versor2[0]
-    #     if versor2[0] < versor2[1]:
-    #         bigger_parameter = versor2[1]
-    #     versor2 = (versor2[0] * river2.get_strength / bigger_parameter, versor2[1] * river2.get_strength / bigger_parameter)
-    #     combined_vector = (versor1[0] + versor2[0], versor1[1] + versor2[1])
-    #     current_position = [colision_point[0], colision_point[1]]
-    #     while(current_position[0] >= 0 and current_position[0] <= self.full_map_width and current_position[1] >= 0 and current_position[1] <= self.full_map_height):
-    #         current_position[0] += combined_vector[0]
-    #         current_position[1] += combined_vector[1]
-    #     current_position[0] = int(current_position[0])
-    #     current_position[1] = int(current_position[1])
-    #     return current_position
-    def river_reroute(self, river: River, collide_point: int, dam: Dam) -> None:
+    def river_reroute(self, river: River,  collide_point: tuple[int, int], dam: Dam) -> bool:
+        #river = self.find_dominant_river(collide_point)
         river_points = river.get_river_points()
-        previous_river_point = river_points[collide_point - 1]
-        vector = (river_points[collide_point][0] - previous_river_point[0], river_points[collide_point][1] - previous_river_point[1])
-        dam_orientation = dam.get_orientation()
-        
+        collide_index = river.contains_or_touches(collide_point)
+        print(collide_index)
+        previous_river_point = river_points[collide_index - 1]
 
-        #tmp_river = River(collide_point)
-        
+        vector = (river_points[collide_index][0] - previous_river_point[0], river_points[collide_index][1] - previous_river_point[1])
+        dam_orientation = dam.get_orientation()
+        if vector == dam_orientation.value or vector == dam_orientation.get_opposite(dam_orientation) or vector == dam_orientation.get_double_next(dam_orientation).value or vector == dam_orientation.get_double_previous(dam_orientation).value:
+            return False
+        bounce_vector = dam.get_bounced_direction(vector).value
+        end_x = river_points[collide_index][0]
+        end_y = river_points[collide_index][1]
+        while end_x != 0 and end_x != self.full_map_width and end_y != 0 and end_y != self.full_map_height:
+            end_x += bounce_vector[0]
+            end_y += bounce_vector[1]
+
+        new_river_points = River.delineate_river((river_points[collide_index][0], river_points[collide_index][1]), (end_x, end_y), 10, 1)
+
+        river.set_river_state(collide_index)
+        river.modify_river_end_points(new_river_points, 0)
+
+        # self.reroute_river_subs_and_fix_dominant(river, collide_point, new_river_points)
+        return True
+    # def find_dominant_river(self, point: tuple[int, int]) -> River:
+    #     for river in self.rivers:
+    #         river_points = river.get_river_points()
+    #         connect_index = river.contains_or_touches(point)
+    #         is_dominant = True
+    #         for i in range(0, connect_index):
+    #             for subriver_points in river.get_subriver_points():
+    #                 if subriver_points == river_points[i]:
+    #                     is_dominant = False
+    #                     break
+    #             if not is_dominant:
+    #                 break
+    #         if is_dominant:
+    #             print(river)
+    #             return river
+    # def reroute_river_subs_and_fix_dominant(self, river: River, colide_point: tuple[int, int], new_river_points: list[tuple[int, int]]) -> None:
+    #     sub_rivers = river.get_rivers_subs()
+    #     sub_colide_points = river.get_rivers_subs_points()
+    #     for i in range(len(sub_rivers)):
+    #         colide_index = sub_rivers[i].contains_or_touches(colide_point)
+    #         sub_river_points = sub_rivers[i].get_river_points()
+    #         to_reroute = False
+    #         for j in range(0, colide_index):
+    #             if sub_river_points == colide_point:
+    #                 to_reroute = True
+    #                 break
+    #         if to_reroute:
+    #             print("rerouting sub")
+    #             sub_rivers[i].set_river_state(colide_index)
+    #             sub_rivers[i].modify_river_end_points(new_river_points, 0)
+
+

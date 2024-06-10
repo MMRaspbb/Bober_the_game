@@ -37,7 +37,6 @@ class PathFinder():
         end_x, end_y = end[0] - self.__map.surface_destination[0], end[1] - self.__map.surface_destination[1]
         (start_x, start_y) = self.__map.convert_pixel_to_tile(start_x, start_y)
         (end_x, end_y) = self.__map.convert_pixel_to_tile(end_x, end_y)
-        print("Path from: ", start_x, start_y, " to: ", end_x, end_y)
 
         # perform A* to find the path
         queue = [(0, (start_x, start_y))]  # priority queue with (cost, tile) tuples

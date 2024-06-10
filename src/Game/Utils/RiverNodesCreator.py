@@ -6,16 +6,22 @@ from scipy.interpolate import CubicSpline
 class RiverNodesCreator:
     def node_creator(self, beginning: list[int, int], end: list[int, int], curvature_indicator: float, interpolation_nodes_distance: int, river_segment_length: int) -> list[
         tuple[int, int]]:
-        angle = math.atan((end[1] - beginning[1]) / (end[0] - beginning[0]))
+        edge_case = False
+        if end[0] == beginning[0]:
+            angle = math.pi / 2
+            if end[1] < beginning[1]:
+                edge_case = True
+        else:
+            angle = math.atan((end[1] - beginning[1]) / (end[0] - beginning[0]))
         invert = False
-        switch_bae = False
         if angle > math.pi / 4 or angle < -math.pi / 4:
             invert = True
-            beginning[0], beginning[1] = beginning[1], beginning[0]
-            end[0], end[1] = end[1], end[0]
-        if (beginning[0] > end[0]):
+            beginning = (beginning[1], beginning[0])
+            end = (end[1], end[0])
+        revert = False
+        if beginning[0] > end[0]:
             beginning, end = end, beginning
-            switch_bae = True
+            edge_case = True
         x, y = self.__create_interpolation_nodes(beginning, end, curvature_indicator, interpolation_nodes_distance)
         interpolation = CubicSpline(x, y)
         x, y = self.__delinerate_river(river_segment_length, interpolation, beginning, end)
@@ -24,16 +30,22 @@ class RiverNodesCreator:
             for i in range(len(x)):
                 x[i],y[i] = y[i],x[i]
         nodes = [(x[i],y[i]) for i in range(len(x))]
+        if edge_case:
+            nodes.reverse()
         return nodes
 
     def __create_interpolation_nodes(self, beginning: list[int, int], end: list[int, int],
                                      curvature_indicator: float, interpolation_nodes_distance: int):
-        a = (beginning[1] - end[1]) / (beginning[0] - end[0])
+        if beginning[0] == end[0]:
+            a = 0
+        else:
+            a = (beginning[1] - end[1]) / (beginning[0] - end[0])
         b = beginning[1] - a * beginning[0]
         linear_function = lambda x: a * x + b
         current_x = beginning[0] + interpolation_nodes_distance
         perpendicular_x = [beginning[0]]
         perpendicular_y = [beginning[1]]
+        current_x += interpolation_nodes_distance
         while (current_x < end[0]):
             rand_distance = random.random() * 2 - 1
             perpendicular_x.append(current_x)

@@ -5,27 +5,33 @@ class River:
     def __init__(self, beginning: list[int, int], end: list[int, int]) -> None:
         self.__beginning = beginning
         self.__end = end
-        self.__interpolation_nodes_distance = 10
-        self.__river_segment_length = 1
-        self.__delineate_river()
-        self.__subriver_from_state = len(self.river_points) - 1
-        if end[0] < beginning[0]:
-            self.river_points.reverse()
+        # self.__interpolation_nodes_distance = 10
+        # self.__river_segment_length = 1
+        self.river_points = self.delineate_river(beginning, end, 10, 1)
         self.river_state = 0
         self.__river_state_limiter = len(self.river_points) - 1
+        self.__subriver_to = []
+        self.__subriver_from = []
+        self.__dominant_to = []
+        self.__dominant_from = []
 
-    def __delineate_river(self) -> None:
+    @staticmethod
+    def delineate_river(beginning, end, interpolation_nodes_distance, river_segment_length):
         riverNodeCreator = RiverNodesCreator()
-        nodes = riverNodeCreator.node_creator(self.__beginning, self.__end, 10, self.__interpolation_nodes_distance,
-                                              self.__river_segment_length)
-        self.river_points = []
+        nodes = riverNodeCreator.node_creator(beginning, end, 10, interpolation_nodes_distance,
+                                              river_segment_length)
+        river_points = []
         for i in range(1, len(nodes)):
             x1, y1 = nodes[i - 1]
             x2, y2 = nodes[i]
-            versor = ((x2 - x1) / self.__river_segment_length, (y2 - y1) / self.__river_segment_length)
-            for j in range(self.__river_segment_length):
-                self.river_points.append((x1 + versor[0] * j, y1 + versor[1] * j))
-    def push_river_state(self) -> bool: #returns if the river was pushed or just stayed in place
+            versor = ((x2 - x1) / river_segment_length, (y2 - y1) / river_segment_length)
+            for j in range(river_segment_length):
+                river_points.append((x1 + versor[0] * j, y1 + versor[1] * j))
+        # if end[0] < beginning[0]:
+        #     river_points.reverse()
+        return river_points
+
+    def push_river_state(self) -> bool:  # returns if the river was pushed or just stayed in place
         if (self.river_state < len(self.river_points) - 1):
             self.river_state += 1
             return True
@@ -36,8 +42,8 @@ class River:
 
     def get_default_end(self) -> tuple[int, int]:
         return self.river_points[-1]
-    def contains_or_touches(self, point: tuple[int, int]) -> bool:
-        # temporary solution, can be solved quicker with binary search
+
+    def contains_or_touches(self, point: tuple[int, int]) -> int:
 
         river_points = self.river_points
         versors = [(0, 0), (1, 0), (-1, 0), (0, 1), (0, -1)]
@@ -66,6 +72,7 @@ class River:
                         result.append([int(river_points[i][0]), int(river_points[i][1] - 2), 'blue'])
 
         return result
+
     def modify_river_end_points(self, new_river_points: list[tuple[int, int]], begin_index: int) -> None:
         updated_points = []
         for i in range(self.river_state):
@@ -77,10 +84,35 @@ class River:
 
     def get_river_points(self) -> list[tuple[int, int]]:
         return self.river_points
-    
-    def set_subriver_state(self, subriver_state: int) -> None:
-        self.__subriver_from_state = subriver_state
 
-    @property
-    def is_subriver_from(self) -> int:
-        return self.__subriver_from_state
+    def set_river_state(self, state: int) -> None:
+        self.river_state = state
+
+    # def add_subriver(self, river, point: tuple[int, int]):
+    #     self.__subriver_to.append(river)
+    #     self.__subriver_from.append(point)
+    #
+    # def add_dominant(self, river: 'River', point: tuple[int, int]):
+    #     self.__dominant_to.append(river)
+    #     self.__dominant_from.append(point)
+    #
+    # def remove_subriver(self, river: 'River') -> None:
+    #     i = 0
+    #     while self.__subriver_to[i] != river:
+    #         i += 1
+    #     self.__subriver_to.pop(i)
+    #     self.__subriver_from.pop(i)
+    # def remove_dominant(self, river: 'River') -> None:
+    #     i = 0
+    #     while self.__subriver_to[i] != river:
+    #         i += 1
+    #     self.__dominant_to.pop(i)
+    #     self.__dominant_from.pop(i)
+    # def is_not_subriver(self) -> bool:
+    #     return self.__subriver_to == []
+    # def get_subriver_points(self) -> list[tuple[int, int]]:
+    #     return self.__subriver_from
+    # def get_rivers_subs(self) -> list['River']:
+    #     return self.__dominant_to
+    # def get_rivers_subs_points(self) -> list[tuple[int, int]]:
+    #     return self.__dominant_from
