@@ -1,4 +1,5 @@
 import copy
+import random
 
 import pygame
 from ..MapElements.River import River
@@ -27,7 +28,7 @@ class Map:
         self.tile_num_vertical = self.tile_num_horizontal * (3 / 4)
         self.side = int(self.width // self.tile_num_horizontal)
         self.full_map_width = 4 * 200
-        self.full_map_height = 3 * 200
+        self.full_map_height = 3 * 
         self.mesh = [[pygame.rect.Rect(i * self.side, j * self.side, self.side, self.side)
                       for j in range(self.full_map_height)]
                      for i in range(self.full_map_width)]
@@ -41,13 +42,13 @@ class Map:
         self.vertical_move_sum = 0
         self.base_selected = False
         self.selected_builder = None
-        self.elements_to_draw = []
+        self.expand_count = 5
 
         # BOBRS
-        self.bobrs = [GathererBobr("G1", self.middle[0] - 15, self.middle[1] - 10),
-                      GathererBobr("G2", self.middle[0] + 15, self.middle[1] - 10),
-                      GardenerBobr("G3", self.middle[0] - 15, self.middle[1] + 10),
-                      BuilderBobr("G4", self.middle[0] + 15, self.middle[1] + 10)]
+        self.bobrs = [GathererBobr("G1", self.middle[0] - 25, self.middle[1] - 20),
+                      GathererBobr("G2", self.middle[0] + 25, self.middle[1] - 20),
+                      GardenerBobr("G3", self.middle[0] - 25, self.middle[1] + 20),
+                      BuilderBobr("G4", self.middle[0] + 25, self.middle[1] + 20)]
         
         # PRICES
         self.bobr_price = {"food": 5}
@@ -84,12 +85,12 @@ class Map:
         self.rivers.append(river2)
         # river3 = River([self.full_map_width, 0], [0, self.full_map_height])
         # self.rivers.append(river3)
-        river1.river_state = 400
-        river2.river_state = 400
+        # river1.river_state = 400
+        # river2.river_state = 400
         self.curr_resources = {
-            "wood": 999,
-            "stone": 999,
-            "food": 999
+            "wood": 20,
+            "stone": 5,
+            "food": 15
         }
 
         self.__update_mesh()
@@ -104,7 +105,7 @@ class Map:
         surface.fill('Light Green')
         visible_horizontal_tiles = surface.get_width() // self.side
         visible_vertical_tiles = surface.get_height() // self.side
-        # Calculate the indices of the middle portion of the map
+
         mid_i_start = max(self.middle[0] - visible_horizontal_tiles, 0)
         mid_i_end = min(self.middle[0] + visible_horizontal_tiles, self.full_map_width)
         mid_j_start = max(self.middle[1] - visible_vertical_tiles, 0)
@@ -113,6 +114,12 @@ class Map:
         # Calculate the offset to the middle of the map
         offset_x = self.middle[0] * self.side - surface.get_width() // 2
         offset_y = self.middle[1] * self.side - surface.get_height() // 2
+
+        for resource in self.resources:
+            for resource_x, resource_y, resource_img in resource.get_representation():
+                if (resource_x >= mid_i_start and resource_x < mid_i_end and resource_y >= mid_j_start and resource_y < mid_j_end):
+                    self.__draw_image(surface, resource_img, resource_x, resource_y, offset_x, offset_y)
+
         for river in self.rivers:
             for river_x, river_y, river_img in river.get_representation():
                 if (river_x >= mid_i_start and river_x < mid_i_end and river_y >= mid_j_start and river_y < mid_j_end):
@@ -122,11 +129,6 @@ class Map:
             for dam_x, dam_y, dam_img in dam.get_representation():
                 if (dam_x >= mid_i_start and dam_x < mid_i_end and dam_y >= mid_j_start and dam_y < mid_j_end):
                     self.__draw_image(surface, dam_img, dam_x, dam_y, offset_x, offset_y)
-
-        for resource in self.resources:
-            for resource_x, resource_y, resource_img in resource.get_representation():
-                if (resource_x >= mid_i_start and resource_x < mid_i_end and resource_y >= mid_j_start and resource_y < mid_j_end):
-                    self.__draw_image(surface, resource_img, resource_x, resource_y, offset_x, offset_y)
 
         base_x, base_y, base_img = self.base.get_representation()[0]
         if (base_x >= mid_i_start and base_x < mid_i_end and base_y >= mid_j_start and base_y < mid_j_end):
@@ -240,8 +242,7 @@ class Map:
                     self.selected_builder = element
 
                 return element
-            
-        print(self.selected_builder)
+
         return None
             
             
@@ -263,6 +264,47 @@ class Map:
             self.current_map_upper_left[1] -= 3
             self.current_map_lower_right[0] += 4
             self.current_map_lower_right[1] += 3
+            self.expand_count += 1
+            self.spawn_random_resources_in_new_area(self.expand_count)
+
+    def spawn_random_resources_in_new_area(self, num_resources):
+        # Define the new expanded area's borders
+        old_upper_left_x = self.current_map_upper_left[0] + 4
+        old_upper_left_y = self.current_map_upper_left[1] + 3
+        old_lower_right_x = self.current_map_lower_right[0] - 4
+        old_lower_right_y = self.current_map_lower_right[1] - 3
+
+        new_upper_left_x = self.current_map_upper_left[0]
+        new_upper_left_y = self.current_map_upper_left[1]
+        new_lower_right_x = self.current_map_lower_right[0]
+        new_lower_right_y = self.current_map_lower_right[1]
+
+        # List of possible resource classes to spawn
+        resource_classes = [ForestResource, StoneResource]
+
+        for _ in range(num_resources):
+            # Randomly choose one of the four edges of the "doughnut" area
+            edge = random.choice(['top', 'bottom', 'left', 'right'])
+
+            if edge == 'top':
+                spawn_x = random.randint(new_upper_left_x, new_lower_right_x)
+                spawn_y = random.randint(new_upper_left_y, old_upper_left_y - 1)
+            elif edge == 'bottom':
+                spawn_x = random.randint(new_upper_left_x, new_lower_right_x)
+                spawn_y = random.randint(old_lower_right_y + 1, new_lower_right_y)
+            elif edge == 'left':
+                spawn_x = random.randint(new_upper_left_x, old_upper_left_x - 1)
+                spawn_y = random.randint(new_upper_left_y, new_lower_right_y)
+            elif edge == 'right':
+                spawn_x = random.randint(old_lower_right_x + 1, new_lower_right_x)
+                spawn_y = random.randint(new_upper_left_y, new_lower_right_y)
+
+            # Randomly select a resource to spawn
+            ResourceClass = random.choice(resource_classes)
+            new_resource = ResourceClass(spawn_x, spawn_y)
+
+            # Add the new resource to the map
+            self.resources.append(new_resource)
            
     def update_rivers(self):
         for i in range(len(self.rivers)):
@@ -294,7 +336,6 @@ class Map:
         #river = self.find_dominant_river(collide_point)
         river_points = river.get_river_points()
         collide_index = river.contains_or_touches(collide_point)
-        print(collide_index)
         previous_river_point = river_points[collide_index - 1]
 
         vector = (river_points[collide_index][0] - previous_river_point[0], river_points[collide_index][1] - previous_river_point[1])
@@ -328,7 +369,6 @@ class Map:
                     button_clicked = False
                     for i, button in enumerate(buttons):
                         if button.collidepoint(x, y):
-                            print(f'Button {i} was clicked')
                             self.selected_button = i  # Store the index of the selected button
                             button_clicked = True
                             self.base_selected = False  # Close the menu if a button was clicked

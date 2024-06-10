@@ -34,11 +34,10 @@ class GameLoop:
 
             self.map.draw(self.surface)
             self.map.update_bobrs()
-            if frames_passed % 1 == 0:
+            if frames_passed % 100 == 0:
+                print("expanding borders")
                 self.map.expand_borders()
 
-
-            # print(self.map.selected_builder)
 
             pygame.display.update()
             self.clock.tick(30)
