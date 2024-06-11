@@ -28,7 +28,7 @@ class Map:
         self.tile_num_vertical = self.tile_num_horizontal * (3 / 4)
         self.side = int(self.width // self.tile_num_horizontal)
         self.full_map_width = 4 * 200
-        self.full_map_height = 3 * 
+        self.full_map_height = 3 * 200
         self.mesh = [[pygame.rect.Rect(i * self.side, j * self.side, self.side, self.side)
                       for j in range(self.full_map_height)]
                      for i in range(self.full_map_width)]

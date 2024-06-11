@@ -34,7 +34,7 @@ class GameLoop:
 
             self.map.draw(self.surface)
             self.map.update_bobrs()
-            if frames_passed % 100 == 0:
+            if frames_passed % 400 == 0:
                 print("expanding borders")
                 self.map.expand_borders()
 
