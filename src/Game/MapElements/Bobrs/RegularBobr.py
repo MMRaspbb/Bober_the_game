@@ -1,5 +1,4 @@
 from .AbstractBobr import AbstractBobr
-from ..BuildingEnum import BuildingEnum
 
 class RegularBobr(AbstractBobr):
     '''

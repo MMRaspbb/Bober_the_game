@@ -19,29 +19,28 @@ from ..MapElements.buildings.Base import Base
 class Map:
     def __init__(self, surface_parameters: tuple[int, int], surface_destination: tuple[int, int]) -> None:
         pygame.font.init()
-        # visible map width and height
         self.surface_destination = surface_destination
         self.width, self.height = surface_parameters
-        # create mesh of width 20 pixels and height 20 pixels
-        # that will devide full_map
         self.tile_num_horizontal = 60
         self.tile_num_vertical = self.tile_num_horizontal * (3 / 4)
         self.side = int(self.width // self.tile_num_horizontal)
         self.full_map_width = 4 * 200
         self.full_map_height = 3 * 200
+
         self.mesh = [[pygame.rect.Rect(i * self.side, j * self.side, self.side, self.side)
                       for j in range(self.full_map_height)]
                      for i in range(self.full_map_width)]
-        # calculate index of the mesh tile that is the middle of the map
+        
         self.middle = [self.full_map_width // 2, self.full_map_height // 2]
         self.current_map_upper_left = [self.middle[0] - 120, self.middle[1] - 90]
         self.current_map_lower_right = [self.middle[0] + 120, self.middle[1] + 90]
-        # create map that will make middle of the map black and around it white
+
         self.colors = {}
         self.horizontal_move_sum = 0
         self.vertical_move_sum = 0
         self.base_selected = False
         self.selected_builder = None
+        self.price_over_coursor = None
         self.expand_count = 5
 
         # BOBRS
@@ -55,7 +54,6 @@ class Map:
         self.dam_price = {"wood": 10}
         self.farm_price = {"wood": 10, "stone": 5}
 
-        self.price_over_coursor = None
         # DAMS
         self.dams = []
 
@@ -83,10 +81,7 @@ class Map:
         self.rivers.append(river1)
         river2 = River([0, self.full_map_height], [self.full_map_width, 0])
         self.rivers.append(river2)
-        # river3 = River([self.full_map_width, 0], [0, self.full_map_height])
-        # self.rivers.append(river3)
-        # river1.river_state = 400
-        # river2.river_state = 400
+
         self.curr_resources = {
             "wood": 20,
             "stone": 5,
@@ -111,7 +106,6 @@ class Map:
         mid_j_start = max(self.middle[1] - visible_vertical_tiles, 0)
         mid_j_end = min(self.middle[1] + visible_vertical_tiles, self.full_map_height)
 
-        # Calculate the offset to the middle of the map
         offset_x = self.middle[0] * self.side - surface.get_width() // 2
         offset_y = self.middle[1] * self.side - surface.get_height() // 2
 
@@ -268,7 +262,6 @@ class Map:
             self.spawn_random_resources_in_new_area(self.expand_count)
 
     def spawn_random_resources_in_new_area(self, num_resources):
-        # Define the new expanded area's borders
         old_upper_left_x = self.current_map_upper_left[0] + 4
         old_upper_left_y = self.current_map_upper_left[1] + 3
         old_lower_right_x = self.current_map_lower_right[0] - 4
@@ -283,7 +276,6 @@ class Map:
         resource_classes = [ForestResource, StoneResource]
 
         for _ in range(num_resources):
-            # Randomly choose one of the four edges of the "doughnut" area
             edge = random.choice(['top', 'bottom', 'left', 'right'])
 
             if edge == 'top':
@@ -299,11 +291,9 @@ class Map:
                 spawn_x = random.randint(old_lower_right_x + 1, new_lower_right_x)
                 spawn_y = random.randint(new_upper_left_y, new_lower_right_y)
 
-            # Randomly select a resource to spawn
             ResourceClass = random.choice(resource_classes)
             new_resource = ResourceClass(spawn_x, spawn_y)
 
-            # Add the new resource to the map
             self.resources.append(new_resource)
            
     def update_rivers(self):
@@ -333,7 +323,6 @@ class Map:
         return True
     
     def river_reroute(self, river: River,  collide_point: tuple[int, int], dam: Dam) -> bool:
-        #river = self.find_dominant_river(collide_point)
         river_points = river.get_river_points()
         collide_index = river.contains_or_touches(collide_point)
         previous_river_point = river_points[collide_index - 1]
@@ -354,30 +343,28 @@ class Map:
         river.set_river_state(collide_index)
         river.modify_river_end_points(new_river_points, 0)
 
-        # self.reroute_river_subs_and_fix_dominant(river, collide_point, new_river_points)
         return True
 
     def draw_base_menu(self):
         if self.base_selected:
             self.selected_button = None
-            buttons = self.base.draw_base_menu(self.width, self.bobr_price)  # Draw the menu outside the loop
-            pygame.display.update()  # Update the display after drawing the menu
+            buttons = self.base.draw_base_menu(self.width, self.bobr_price) 
+            pygame.display.update()
             while True:
                 event = pygame.event.wait()  # Wait for an event
-                if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:  # Check if the left mouse button was clicked
+                if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1: 
                     x, y = event.pos
                     button_clicked = False
                     for i, button in enumerate(buttons):
                         if button.collidepoint(x, y):
-                            self.selected_button = i  # Store the index of the selected button
+                            self.selected_button = i 
                             button_clicked = True
-                            self.base_selected = False  # Close the menu if a button was clicked
+                            self.base_selected = False
                             break
                     if not button_clicked:
-                        self.base_selected = False  # Close the menu if clicked outside
-                    pygame.display.update()  # Update the display after an event
+                        self.base_selected = False  
+                    pygame.display.update() 
                     if not self.base_selected:
-                          # Exit the loop
                         break
                 if event.type == pygame.QUIT:
                     pygame.quit()
@@ -385,7 +372,7 @@ class Map:
 
             if self.__pay(self.bobr_price) and self.selected_button is not None:
                 match self.selected_button:
-                    case 0: # Builder
+                    case 0:
                         self.bobrs.append(BuilderBobr("builder", self.base.position[0] + 5, self.base.position[1]))
                     case 1:
                         self.bobrs.append(GathererBobr("gatherer", self.base.position[0] + 5, self.base.position[1]))

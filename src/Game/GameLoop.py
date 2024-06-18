@@ -4,6 +4,7 @@ from .Utils.PathFinder import PathFinder
 from sys import exit
 from pygame.locals import RESIZABLE
 
+
 class GameLoop:
     screen = pygame.display.set_mode((800, 600), RESIZABLE)
     pygame.display.set_caption("Bober")
@@ -11,8 +12,8 @@ class GameLoop:
 
     surface_parameters = (800, 600)
     surface = pygame.Surface(surface_parameters)
-    surface_destination = (0,0)
-    surface.fill('Light Green')
+    surface_destination = (0, 0)
+    surface.fill("Light Green")
 
     map = Map(surface_parameters, surface_destination)
     pathfinder = PathFinder(map)
@@ -34,15 +35,13 @@ class GameLoop:
 
             self.map.draw(self.surface)
             self.map.update_bobrs()
-            if frames_passed % 400 == 0:
+            if frames_passed % 100 == 0:
                 print("expanding borders")
                 self.map.expand_borders()
-
 
             pygame.display.update()
             self.clock.tick(30)
             frames_passed += 1
-
 
     def __event_handler(self) -> None:
         for event in pygame.event.get():
@@ -66,21 +65,21 @@ class GameLoop:
             if event.button == 3:
                 self.mouse_right_down = False
 
-
     def __on_select_event(self, event: pygame.event.Event) -> None:
         if event.type == pygame.MOUSEBUTTONDOWN:
             if event.button == 1:
-                # placing dam if possible
                 self.map.place_skeleton()
                 if not self.mouse_left_clicked:
                     self.element_start_pos = event.pos
                     element = self.map.get_selection(event.pos[0], event.pos[1])
-                    if element: 
+                    if element:
                         self.mouse_left_clicked = True
                         self.selected_element = element
                 else:
                     self.element_end_pos = event.pos
-                    path = self.pathfinder.find_path(self.element_start_pos, self.element_end_pos)
+                    path = self.pathfinder.find_path(
+                        self.element_start_pos, self.element_end_pos
+                    )
                     self.selected_element.set_path(path)
                     self.selected_element.is_selected = False
                     self.mouse_left_clicked = False
@@ -91,21 +90,19 @@ class GameLoop:
     def __on_scroll_event(self, event: pygame.event.Event) -> None:
         if event.type == pygame.MOUSEWHEEL:
             self.map.rotate_skeleton_dam()
-        
- 
 
     def fix_surface_position(self):
         width, height = pygame.display.get_surface().get_size()
         normalized_width = width / 4
         normalized_height = height / 3
         if normalized_width > normalized_height:
-            # po lewej i po prawej czarne paski
             self.surface_parameters = (normalized_height * 4, height)
             self.surface_destination = (width / 2 - normalized_height * 2, 0)
         else:
-            # u góry i na dole czarne paski
             self.surface_parameters = (width, normalized_width * 3)
             self.surface_destination = (0, height / 2 - normalized_width * 1.5)
         self.surface = pygame.Surface(self.surface_parameters)
-        self.surface.fill('Light Green')
-        self.map.update_surface_parameters(self.surface_parameters, self.surface_destination)
+        self.surface.fill("Light Green")
+        self.map.update_surface_parameters(
+            self.surface_parameters, self.surface_destination
+        )

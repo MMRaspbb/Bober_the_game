@@ -1,6 +1,5 @@
 from abc import ABC, abstractmethod
 from Game.Maps.MapDirection import MapDirection
-from ..BuildingEnum import BuildingEnum
 from ..Selectable import Selectable
 
 class AbstractBobr(ABC, Selectable):

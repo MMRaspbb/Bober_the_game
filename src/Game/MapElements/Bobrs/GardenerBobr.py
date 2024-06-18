@@ -15,7 +15,6 @@ class GardenerBobr(AbstractBobr):
         '''
         Get Bobr representation
         '''
-        # load builder.png from resources
         img = pygame.image.load("src/resources/gardener.png")
         if self.is_selected:
             img.fill((255, 0, 0, 255), special_flags=pygame.BLEND_RGB_MULT)
